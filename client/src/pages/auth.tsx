@@ -76,7 +76,7 @@ function AuthShell({ children, showBackground = false, step }: { children: React
 function LogoHeader() {
   return (
     <div className="text-center mb-6" data-testid="text-logo-header">
-      <h1 className="text-xl font-medium tracking-tight text-foreground" style={{ fontFamily: "'Georgia', serif" }}>
+      <h1 className="text-xl font-medium tracking-tight text-foreground">
         GalleaBrandVoicePro
       </h1>
     </div>
@@ -97,7 +97,6 @@ export function WelcomePage({ onNavigate }: AuthPageProps) {
         <div className="mb-8">
           <h1
             className="text-2xl font-medium tracking-tight text-foreground mb-2"
-            style={{ fontFamily: "'Georgia', serif" }}
             data-testid="text-welcome-logo"
           >
             GalleaBrandVoicePro

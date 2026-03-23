@@ -71,10 +71,10 @@ export async function registerRoutes(
     }));
 
     app.get("/api/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
-    app.get("/api/auth/google/callback", passport.authenticate("google", { failureRedirect: "/#/?auth=failed" }),
+    app.get("/api/auth/google/callback", passport.authenticate("google", { failureRedirect: "/?auth=failed" }),
       (req, res) => {
         const user = req.user as any;
-        res.redirect(`/#/?auth=success&userId=${user.id}&username=${encodeURIComponent(user.username)}&fullName=${encodeURIComponent(user.fullName)}&role=${user.role}&companyId=${user.companyId || ""}`);
+        res.redirect(`/?auth=success&userId=${user.id}&username=${encodeURIComponent(user.username)}&fullName=${encodeURIComponent(user.fullName)}&role=${user.role}&companyId=${user.companyId || ""}`);
       }
     );
   }
@@ -97,10 +97,10 @@ export async function registerRoutes(
     }));
 
     app.get("/api/auth/facebook", passport.authenticate("facebook", { scope: ["email"] }));
-    app.get("/api/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/#/?auth=failed" }),
+    app.get("/api/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/?auth=failed" }),
       (req, res) => {
         const user = req.user as any;
-        res.redirect(`/#/?auth=success&userId=${user.id}&username=${encodeURIComponent(user.username)}&fullName=${encodeURIComponent(user.fullName)}&role=${user.role}&companyId=${user.companyId || ""}`);
+        res.redirect(`/?auth=success&userId=${user.id}&username=${encodeURIComponent(user.username)}&fullName=${encodeURIComponent(user.fullName)}&role=${user.role}&companyId=${user.companyId || ""}`);
       }
     );
   }

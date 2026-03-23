@@ -403,7 +403,6 @@ export default function AssessmentPage({ onComplete, onBack, companyId, userId }
         <div className="text-center mb-4">
           <h1
             className="text-xl font-medium tracking-tight text-foreground"
-            style={{ fontFamily: "'Georgia', serif" }}
             data-testid="text-assessment-logo"
           >
             GalleaBrandVoicePro

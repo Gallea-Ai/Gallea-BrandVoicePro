@@ -6,12 +6,11 @@ export default {
   theme: {
     extend: {
       borderRadius: {
-        lg: ".875rem", /* 14px — more rounded, Apple-like */
-        md: ".625rem", /* 10px */
-        sm: ".375rem", /* 6px */
+        lg: "0.75rem",  /* 12px */
+        md: "0.625rem", /* 10px — spec CTA buttons */
+        sm: "0.5rem",   /* 8px — spec cards */
       },
       colors: {
-        // Flat / base colors (regular buttons)
         background: "hsl(var(--background) / <alpha-value>)",
         foreground: "hsl(var(--foreground) / <alpha-value>)",
         border: "hsl(var(--border) / <alpha-value>)",
@@ -73,18 +72,24 @@ export default {
         "sidebar-accent": {
           DEFAULT: "hsl(var(--sidebar-accent) / <alpha-value>)",
           foreground: "hsl(var(--sidebar-accent-foreground) / <alpha-value>)",
-          border: "var(--sidebar-accent-border)"
+          border: "var(--sidebar-accent-border)",
         },
-        status: {
-          online: "rgb(34 197 94)",
-          away: "rgb(245 158 11)",
-          busy: "rgb(239 68 68)",
-          offline: "rgb(156 163 175)",
-        },
+        /* Spec-specific named colors for direct use */
+        "gallea-orange": "#FF8900",
+        "gallea-green": "#1F9A15",
+        "gallea-red": "#FF0000",
+        "gallea-muted": "#585858",
+        "gallea-placeholder": "#9B9B9B",
+        "gallea-empty": "#7E7E7E",
+        "gallea-micro": "#8E8E8E",
+        "gallea-auth-bg": "#EAEAEA",
+        "gallea-brief-bg": "#F0F0F0",
+        "gallea-light-border": "#B7B7B7",
+        "gallea-input-border": "#707070",
+        "gallea-map-bg": "#111111",
       },
       fontFamily: {
         sans: ["var(--font-sans)"],
-        serif: ["var(--font-serif)"],
         mono: ["var(--font-mono)"],
       },
       keyframes: {

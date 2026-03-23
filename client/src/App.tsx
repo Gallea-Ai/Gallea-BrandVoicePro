@@ -26,8 +26,17 @@ import {
   Users,
   Copy,
   Check,
+  ChevronLeft,
 } from "lucide-react";
 import { PerplexityAttribution } from "@/components/PerplexityAttribution";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 
 // Pages
 import {
@@ -53,6 +62,44 @@ type AppView =
   | "workspace-setup" | "join-team" | "reset-password" | "assessment"
   | "create" | "library" | "analytics" | "brand-voice" | "settings" | "faq";
 
+// Map view names to URL paths
+const VIEW_TO_PATH: Record<string, string> = {
+  welcome: "/",
+  signin: "/login",
+  signup: "/signup",
+  "reset-password": "/reset-password",
+  pricing: "/pricing",
+  "company-setup": "/company-setup",
+  "workspace-setup": "/workspace-setup",
+  "join-team": "/join",
+  assessment: "/assessment",
+  create: "/create",
+  library: "/library",
+  analytics: "/analytics",
+  "brand-voice": "/brand-voice",
+  settings: "/settings",
+  faq: "/faq",
+};
+
+// Map URL paths back to view names
+const PATH_TO_VIEW: Record<string, AppView> = {
+  "/": "welcome",
+  "/login": "signin",
+  "/signup": "signup",
+  "/reset-password": "reset-password",
+  "/pricing": "pricing",
+  "/company-setup": "company-setup",
+  "/workspace-setup": "workspace-setup",
+  "/join": "join-team",
+  "/assessment": "assessment",
+  "/create": "create",
+  "/library": "library",
+  "/analytics": "analytics",
+  "/brand-voice": "brand-voice",
+  "/settings": "settings",
+  "/faq": "faq",
+};
+
 interface AppUser {
   id: number;
   username: string;
@@ -75,14 +122,14 @@ interface AppCompany {
 
 const NAV_ITEMS = [
   { view: "create" as const, label: "Create", icon: PenLine },
-  { view: "library" as const, label: "My Content", icon: BookOpen },
+  { view: "library" as const, label: "Library", icon: BookOpen },
 ];
 
 const BOTTOM_NAV = [
   { view: "analytics" as const, label: "Analytics", icon: BarChart3 },
-  { view: "brand-voice" as const, label: "My Brand", icon: AudioWaveform },
+  { view: "brand-voice" as const, label: "Brand Voice", icon: AudioWaveform },
   { view: "settings" as const, label: "Settings", icon: Settings },
-  { view: "faq" as const, label: "Help", icon: HelpCircle },
+  { view: "faq" as const, label: "FAQ", icon: HelpCircle },
 ];
 
 function Sidebar({
@@ -95,6 +142,8 @@ function Sidebar({
   onInviteTeam,
   isMobile,
   onClose,
+  collapsed,
+  onToggleCollapse,
 }: {
   currentView: AppView;
   onNavigate: (view: AppView) => void;
@@ -105,6 +154,8 @@ function Sidebar({
   onInviteTeam: () => void;
   isMobile: boolean;
   onClose: () => void;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
 }) {
   const voiceActive = !!brandProfile;
   const territories = brandProfile?.emotionalTerritories
@@ -113,12 +164,15 @@ function Sidebar({
 
   // Find the dominant territory
   let dominantTerritory = "";
+  let intensityScore = 0;
   if (territories) {
     const entries = Object.entries(territories) as [string, number][];
     entries.sort((a, b) => (b[1] as number) - (a[1] as number));
     dominantTerritory = entries[0]?.[0]
       ?.replace(/_/g, " ")
       .replace(/\b\w/g, (c) => c.toUpperCase()) || "";
+    // Derive intensity from top territory score (0-100 mapped to 1-10)
+    intensityScore = Math.max(1, Math.min(10, Math.round((entries[0]?.[1] as number || 50) / 10)));
   }
 
   const handleNav = (view: AppView) => {
@@ -126,109 +180,119 @@ function Sidebar({
     if (isMobile) onClose();
   };
 
+  if (collapsed && !isMobile) {
+    return (
+      <aside
+        className="w-10 min-h-screen bg-white border-r border-[#E5E5E5] flex flex-col items-center py-4 overflow-hidden"
+        data-testid="sidebar-collapsed"
+      >
+        <button
+          onClick={onToggleCollapse}
+          className="p-1 rounded hover:bg-[#F0F0F0] transition-colors rotate-180"
+          data-testid="button-expand-sidebar"
+        >
+          <ChevronLeft className="w-4 h-4 text-black" />
+        </button>
+      </aside>
+    );
+  }
+
   return (
-    <aside className="w-52 min-h-screen bg-card border-r border-border flex flex-col py-5 px-3" data-testid="sidebar">
+    <aside
+      className="min-h-screen bg-white border-r border-[#E5E5E5] flex flex-col py-4 px-2 overflow-hidden"
+      style={{ width: isMobile ? "200px" : "140px" }}
+      data-testid="sidebar"
+    >
       {/* Close button on mobile */}
       {isMobile && (
         <button
           onClick={onClose}
-          className="self-end mb-2 p-1 rounded-md hover:bg-muted/50 transition-colors"
+          className="self-end mb-2 p-1 rounded-md hover:bg-[#F0F0F0] transition-colors"
           data-testid="button-close-sidebar"
         >
-          <X className="w-5 h-5" />
+          <X className="w-4 h-4" />
         </button>
       )}
 
-      {/* Logo */}
-      <div className="px-2 mb-4">
-        <h1 className="text-base font-bold tracking-tight" data-testid="text-logo">Gallea Ai</h1>
-        {voiceActive && (
-          <div className="mt-2 text-xs space-y-1">
-            <p className="text-green-600 font-medium flex items-center gap-1">
-              <Check className="w-3 h-3" />
-              Voice Ready
-            </p>
-            <p className="text-foreground font-medium">{dominantTerritory}</p>
-            <div className="flex items-center gap-1.5">
-              <div className="flex-1 h-1.5 rounded-full bg-border overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-amber-500 transition-all"
-                  style={{ width: `${brandProfile?.singularityScore || 0}%` }}
-                />
-              </div>
-              <span className="text-amber-600 text-[10px] font-medium">{brandProfile?.singularityScore}</span>
-            </div>
-          </div>
-        )}
+      {/* Brand Header */}
+      <div className="px-1 mb-3">
+        <h1 className="text-[16px] font-medium text-black" data-testid="text-logo">
+          Gallea Ai
+        </h1>
       </div>
 
-      {/* Main nav */}
+      {/* Voice Status Block */}
+      {voiceActive && (
+        <div className="px-1 mb-3 space-y-0.5">
+          <p className="text-[14px] font-light text-black leading-tight">Voice Active</p>
+          <p className="text-[14px] font-light text-black leading-tight">{dominantTerritory}</p>
+          <p className="text-[14px] font-medium leading-tight" style={{ color: "#FF8900" }}>
+            {intensityScore}/10 Core
+          </p>
+          <p className="text-[14px] font-light text-black leading-tight">Current Voice</p>
+        </div>
+      )}
+
+      {/* Top Nav Group */}
       <nav className="flex-1 space-y-0.5">
         {NAV_ITEMS.map(({ view, label, icon: Icon }) => (
           <button
             key={view}
             onClick={() => handleNav(view)}
             data-testid={`nav-${view}`}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors ${
+            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[14px] rounded transition-colors ${
               currentView === view
-                ? "font-semibold text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                ? "font-medium text-black underline"
+                : "font-light text-black hover:bg-[#F0F0F0]"
             }`}
           >
-            <Icon className="w-4 h-4" />
-            {label}
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{label}</span>
           </button>
         ))}
       </nav>
 
-      {/* Bottom nav */}
-      <div className="space-y-0.5 border-t border-border pt-3 mt-3">
+      {/* Bottom Nav Group */}
+      <div className="space-y-0.5 mt-4">
         {BOTTOM_NAV.map(({ view, label, icon: Icon }) => (
           <button
             key={view}
             onClick={() => handleNav(view)}
             data-testid={`nav-${view}`}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors ${
+            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[14px] rounded transition-colors ${
               currentView === view
-                ? "font-semibold text-foreground"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                ? "font-medium text-black underline"
+                : "font-light text-black hover:bg-[#F0F0F0]"
             }`}
           >
-            <Icon className="w-4 h-4" />
-            {label}
+            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{label}</span>
           </button>
         ))}
-
-        {/* Invite Team button (admin only) */}
-        {user.role === "admin" && company && (
-          <button
-            onClick={() => {
-              onInviteTeam();
-              if (isMobile) onClose();
-            }}
-            data-testid="button-invite-team"
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-sm rounded-md transition-colors text-muted-foreground hover:text-foreground hover:bg-muted/50"
-          >
-            <Users className="w-4 h-4" />
-            Invite Team
-          </button>
-        )}
       </div>
 
-      {/* User */}
-      <div className="border-t border-border pt-3 mt-3 px-2">
-        <p className="text-sm font-medium truncate">Hey, {user.fullName.split(" ")[0]}</p>
+      {/* Footer: User + Sign Out + Collapse */}
+      <div className="border-t border-[#E5E5E5] pt-2 mt-3 px-1">
+        <p className="text-[14px] font-light text-black truncate">{user.fullName}</p>
         <button
           onClick={() => {
             onSignOut();
             if (isMobile) onClose();
           }}
-          className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground mt-1 transition-colors"
+          className="text-[14px] font-light text-black hover:underline mt-0.5"
           data-testid="button-sign-out"
         >
-          <LogOut className="w-3 h-3" />
           Sign Out
         </button>
+        {!isMobile && (
+          <button
+            onClick={onToggleCollapse}
+            className="flex items-center gap-1 text-[12px] text-[#585858] hover:text-black mt-2 transition-colors"
+            data-testid="button-collapse-sidebar"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </button>
+        )}
       </div>
     </aside>
   );
@@ -287,19 +351,29 @@ function InviteTeamModal({
   );
 }
 
-// ─── Main App Content ─────────────────────────────────────────────────────────
+// ─── Main App Content (with react-router) ───────────────────────────────────
 
 function AppContent() {
-  const [view, setView] = useState<AppView>("welcome");
+  const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState<AppUser | null>(null);
   const [company, setCompany] = useState<AppCompany | null>(null);
-  const [selectedPlan, setSelectedPlan] = useState<string>("individual");
   const [contentVersion, setContentVersion] = useState(0);
   const [sessionLoading, setSessionLoading] = useState(true);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const { toast } = useToast();
+
+  // Derive current "view" from URL path for sidebar highlighting
+  const currentView: AppView = PATH_TO_VIEW[location.pathname] || "welcome";
+
+  // Navigation helper: converts view names to URL paths
+  const navigateTo = useCallback((viewOrPath: string) => {
+    const path = VIEW_TO_PATH[viewOrPath] || viewOrPath;
+    navigate(path);
+  }, [navigate]);
 
   // ── Responsive listener ──
   useEffect(() => {
@@ -322,13 +396,17 @@ function AppContent() {
           setUser(data.user);
           if (data.company) {
             setCompany(data.company);
-            setView("create");
+            // Only redirect to /create if on an auth page or root
+            const authPaths = ["/", "/login", "/signup", "/reset-password", "/pricing", "/company-setup", "/workspace-setup", "/join"];
+            if (authPaths.includes(location.pathname)) {
+              navigate("/create", { replace: true });
+            }
           } else {
-            setView("workspace-setup");
+            navigate("/workspace-setup", { replace: true });
           }
         }
       } catch {
-        // No session — stay on welcome
+        // No session — stay on current page
       } finally {
         setSessionLoading(false);
       }
@@ -338,9 +416,10 @@ function AppContent() {
 
   // ── OAuth callback handler ──
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.includes("auth=success")) {
-      const params = new URLSearchParams(hash.replace(/^#\/\?/, ""));
+    const params = new URLSearchParams(location.search);
+    const authStatus = params.get("auth");
+
+    if (authStatus === "success") {
       const userId = params.get("userId");
       const username = params.get("username");
       const fullName = params.get("fullName");
@@ -358,7 +437,6 @@ function AppContent() {
         };
         setUser(oauthUser);
 
-        // Save session for persistence (visitor ID sent automatically via apiRequest)
         apiRequest("POST", "/api/auth/session", { userId: oauthUser.id }).catch(() => {});
 
         if (oauthUser.companyId) {
@@ -366,19 +444,18 @@ function AppContent() {
             .then(r => r.json())
             .then(c => {
               setCompany(c);
-              setView("create");
+              navigate("/create", { replace: true });
             })
-            .catch(() => setView("workspace-setup"));
+            .catch(() => navigate("/workspace-setup", { replace: true }));
         } else {
-          setView("workspace-setup");
+          navigate("/workspace-setup", { replace: true });
         }
 
-        window.location.hash = "#/";
         toast({ title: "Signed in successfully", description: `Welcome, ${decodeURIComponent(fullName)}` });
       }
-    } else if (hash.includes("auth=failed")) {
+    } else if (authStatus === "failed") {
       toast({ title: "Sign in failed", description: "OAuth authentication was unsuccessful. Try again or use email/password.", variant: "destructive" });
-      window.location.hash = "#/";
+      navigate("/", { replace: true });
     }
   }, []);
 
@@ -406,7 +483,7 @@ function AppContent() {
     },
     onSuccess: () => {
       refetchBrandProfile();
-      setView("brand-voice");
+      navigate("/brand-voice");
       toast({ title: "Brand voice profile generated", description: "Your brand DNA has been analyzed and your voice profile is ready." });
     },
     onError: (err: any) => {
@@ -414,12 +491,9 @@ function AppContent() {
     },
   });
 
-  const handleNavigate = useCallback((v: string) => setView(v as AppView), []);
-
   const handleAuth = useCallback(async (userData: any, companyData: any) => {
     setUser(userData);
 
-    // Save session for persistence (visitor ID sent automatically via apiRequest)
     if (userData?.id) {
       try {
         await apiRequest("POST", "/api/auth/session", { userId: userData.id });
@@ -431,27 +505,26 @@ function AppContent() {
       try {
         const res = await apiRequest("GET", `/api/brand-voice/${companyData.id}`);
         if (res.ok) {
-          setView("create");
+          navigate("/create");
         } else {
-          setView("assessment");
+          navigate("/assessment");
         }
       } catch {
-        setView("assessment");
+        navigate("/assessment");
       }
     } else {
-      setView("workspace-setup");
+      navigate("/workspace-setup");
     }
-  }, []);
+  }, [navigate]);
 
   const handleSignOut = useCallback(async () => {
-    // Destroy session on server (visitor ID sent automatically via apiRequest)
     try {
       await apiRequest("POST", "/api/auth/logout");
     } catch {}
     setUser(null);
     setCompany(null);
-    setView("welcome");
-  }, []);
+    navigate("/");
+  }, [navigate]);
 
   const handleAssessmentComplete = useCallback((responses: Record<string, any>[]) => {
     generateBrandVoice.mutate(responses);
@@ -460,6 +533,18 @@ function AppContent() {
   const handleContentGenerated = useCallback(() => {
     setContentVersion(prev => prev + 1);
   }, []);
+
+  const handleCompanySetupAuth = useCallback((u: any, c: any) => {
+    if (c) setCompany(c);
+    setUser(prev => prev ? { ...prev, companyId: c?.id || null } : null);
+    navigate("/assessment");
+  }, [navigate]);
+
+  const handleJoinTeamAuth = useCallback((u: any, c: any) => {
+    if (c) setCompany(c);
+    setUser(prev => prev ? { ...prev, companyId: c?.id || null } : null);
+    navigate("/create");
+  }, [navigate]);
 
   // ─── Loading spinner while checking session ──
   if (sessionLoading) {
@@ -471,98 +556,32 @@ function AppContent() {
     );
   }
 
-  // ─── Auth screens ──
-  if (!user) {
-    switch (view) {
-      case "signin":
-        return <SignInPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "signup":
-        return <SignUpPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "reset-password":
-        return <ResetPasswordPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "pricing":
-        return <PricingPage onNavigate={(v) => {
-          if (v === "company-setup") {
-            handleNavigate("company-setup");
-          } else {
-            handleNavigate(v);
-          }
-        }} onAuth={handleAuth} />;
-      case "company-setup":
-        return <CompanySetupPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "workspace-setup":
-        return <WorkspaceSetupPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "join-team":
-        return <JoinTeamPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      default:
-        return <WelcomePage onNavigate={handleNavigate} onAuth={handleAuth} />;
-    }
-  }
+  // ─── Sidebar layout wrapper for authenticated platform pages ──
+  const platformPages = ["/create", "/library", "/analytics", "/brand-voice", "/settings", "/faq"];
+  const isPlatformPage = platformPages.includes(location.pathname);
+  const showSidebar = !!user && !!company && isPlatformPage;
 
-  // ─── Workspace setup (after signup, before company) ──
-  if (!company) {
-    switch (view) {
-      case "workspace-setup":
-        return <WorkspaceSetupPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      case "company-setup":
-        return <CompanySetupPage onNavigate={handleNavigate} onAuth={(u, c) => {
-          if (c) setCompany(c);
-          setUser(prev => prev ? { ...prev, companyId: c?.id || null } : null);
-          setView("assessment");
-        }} />;
-      case "join-team":
-        return <JoinTeamPage onNavigate={handleNavigate} onAuth={(u, c) => {
-          if (c) setCompany(c);
-          setUser(prev => prev ? { ...prev, companyId: c?.id || null } : null);
-          setView("create");
-        }} />;
-      case "pricing":
-        return <PricingPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-      default:
-        return <WorkspaceSetupPage onNavigate={handleNavigate} onAuth={handleAuth} />;
-    }
-  }
+  // ─── Assessment generating state ──
+  const isAssessmentGenerating = generateBrandVoice.isPending;
 
-  // ─── Assessment (generating brand voice) ──
-  if (view === "assessment") {
-    if (generateBrandVoice.isPending) {
-      return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-          <Loader2 className="w-8 h-8 animate-spin text-foreground" />
-          <p className="text-lg font-medium">Analyzing your brand DNA...</p>
-          <p className="text-sm text-muted-foreground">Building voice rules, channel profiles, and archetype mapping</p>
-        </div>
-      );
-    }
-    return (
-      <AssessmentPage
-        onComplete={handleAssessmentComplete}
-        onBack={() => setView("create")}
-        companyId={company?.id}
-        userId={user?.id}
-      />
-    );
-  }
-
-  // ─── Main app with sidebar ──
   return (
-    <div className="flex min-h-screen bg-background">
-      {/* Mobile top bar */}
-      {isMobile && (
-        <div className="fixed top-0 left-0 right-0 z-40 h-12 bg-card border-b border-border flex items-center px-3" data-testid="mobile-topbar">
+    <div className={showSidebar ? "flex min-h-screen bg-background" : "min-h-screen bg-background"}>
+      {/* Mobile top bar (only on platform pages) */}
+      {showSidebar && isMobile && (
+        <div className="fixed top-0 left-0 right-0 z-40 h-12 bg-white border-b border-[#E5E5E5] flex items-center px-3" data-testid="mobile-topbar">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-1.5 rounded-md hover:bg-muted/50 transition-colors"
+            className="p-1.5 rounded-md hover:bg-[#F0F0F0] transition-colors"
             data-testid="button-hamburger"
           >
             <Menu className="w-5 h-5" />
           </button>
-          <h1 className="ml-2 text-sm font-bold tracking-tight">Gallea Ai</h1>
+          <h1 className="ml-2 text-[16px] font-medium text-black">Gallea Ai</h1>
         </div>
       )}
 
       {/* Mobile sidebar overlay */}
-      {isMobile && sidebarOpen && (
+      {showSidebar && isMobile && sidebarOpen && (
         <div
           className="fixed inset-0 z-50 bg-black/40"
           onClick={() => setSidebarOpen(false)}
@@ -573,32 +592,36 @@ function AppContent() {
             onClick={(e) => e.stopPropagation()}
           >
             <Sidebar
-              currentView={view}
-              onNavigate={setView}
-              user={user}
+              currentView={currentView}
+              onNavigate={(v) => { navigateTo(v); setSidebarOpen(false); }}
+              user={user!}
               company={company}
               brandProfile={brandProfile}
               onSignOut={handleSignOut}
               onInviteTeam={() => setInviteModalOpen(true)}
               isMobile={true}
               onClose={() => setSidebarOpen(false)}
+              collapsed={false}
+              onToggleCollapse={() => {}}
             />
           </div>
         </div>
       )}
 
       {/* Desktop sidebar */}
-      {!isMobile && (
+      {showSidebar && !isMobile && (
         <Sidebar
-          currentView={view}
-          onNavigate={setView}
-          user={user}
+          currentView={currentView}
+          onNavigate={navigateTo}
+          user={user!}
           company={company}
           brandProfile={brandProfile}
           onSignOut={handleSignOut}
           onInviteTeam={() => setInviteModalOpen(true)}
           isMobile={false}
           onClose={() => {}}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((c) => !c)}
         />
       )}
 
@@ -611,29 +634,105 @@ function AppContent() {
         />
       )}
 
-      <main className={`flex-1 overflow-auto ${isMobile ? "pt-12" : ""}`}>
-        {view === "create" && (
-          <CreatePage user={user} brandProfile={brandProfile} onContentGenerated={handleContentGenerated} />
-        )}
-        {view === "library" && <LibraryPage user={user} key={contentVersion} onNavigateToCreate={() => setView("create")} />}
-        {view === "analytics" && <AnalyticsPage user={user} />}
-        {view === "brand-voice" && (
-          <BrandVoicePage
-            brandProfile={brandProfile}
-            onRetakeAssessment={() => setView("assessment")}
-          />
-        )}
-        {view === "settings" && (
-          <SettingsPage
-            user={user}
-            company={company}
-            onUpdateCompany={(updates) => {
-              setCompany(prev => prev ? { ...prev, ...updates } : null);
-            }}
-          />
-        )}
-        {view === "faq" && <FaqPage />}
-        <PerplexityAttribution />
+      <main className={`flex-1 overflow-auto ${showSidebar && isMobile ? "pt-12" : ""}`}>
+        <Routes>
+          {/* ── Auth / Onboarding routes ── */}
+          <Route path="/" element={
+            user && company ? <Navigate to="/create" replace /> :
+            <WelcomePage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+          <Route path="/login" element={
+            user && company ? <Navigate to="/create" replace /> :
+            <SignInPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+          <Route path="/signup" element={
+            user && company ? <Navigate to="/create" replace /> :
+            <SignUpPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+          <Route path="/reset-password" element={
+            <ResetPasswordPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+          <Route path="/pricing" element={
+            <PricingPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+          <Route path="/company-setup" element={
+            user ? <CompanySetupPage onNavigate={navigateTo} onAuth={handleCompanySetupAuth} /> :
+            <Navigate to="/" replace />
+          } />
+          <Route path="/workspace-setup" element={
+            user ? <WorkspaceSetupPage onNavigate={navigateTo} onAuth={handleAuth} /> :
+            <Navigate to="/" replace />
+          } />
+          <Route path="/join" element={
+            user ? <JoinTeamPage onNavigate={navigateTo} onAuth={handleJoinTeamAuth} /> :
+            <JoinTeamPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+
+          {/* ── Assessment ── */}
+          <Route path="/assessment" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            isAssessmentGenerating ? (
+              <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
+                <Loader2 className="w-8 h-8 animate-spin text-foreground" />
+                <p className="text-lg font-medium">Analyzing your brand DNA...</p>
+                <p className="text-sm text-muted-foreground">Building voice rules, channel profiles, and archetype mapping</p>
+              </div>
+            ) : (
+              <AssessmentPage
+                onComplete={handleAssessmentComplete}
+                onBack={() => navigate("/create")}
+                companyId={company?.id}
+                userId={user?.id}
+              />
+            )
+          } />
+
+          {/* ── Platform pages (require auth + company) ── */}
+          <Route path="/create" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <CreatePage user={user} brandProfile={brandProfile} onContentGenerated={handleContentGenerated} />
+          } />
+          <Route path="/library" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <LibraryPage user={user} key={contentVersion} onNavigateToCreate={() => navigate("/create")} />
+          } />
+          <Route path="/analytics" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <AnalyticsPage user={user} />
+          } />
+          <Route path="/brand-voice" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <BrandVoicePage
+              brandProfile={brandProfile}
+              onRetakeAssessment={() => navigate("/assessment")}
+            />
+          } />
+          <Route path="/settings" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <SettingsPage
+              user={user}
+              company={company}
+              onUpdateCompany={(updates) => {
+                setCompany(prev => prev ? { ...prev, ...updates } : null);
+              }}
+            />
+          } />
+          <Route path="/faq" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <FaqPage />
+          } />
+
+          {/* ── Catch-all ── */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+        {showSidebar && <PerplexityAttribution />}
       </main>
     </div>
   );
@@ -641,12 +740,14 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <AppContent />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <BrowserRouter>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <AppContent />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </BrowserRouter>
   );
 }
 

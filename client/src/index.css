@@ -2,137 +2,129 @@
 @tailwind components;
 @tailwind utilities;
 
-/* GALLEA BRAND VOICE PRO — Warm, Friendly, Apple-inspired
-   Soft warm whites, gentle rounded corners, breathing room,
-   inviting accent colors, human-feeling typography */
+/*
+ * GALLEA BRAND VOICE PRO — Design System
+ *
+ * Elza Font Family Setup
+ * ----------------------
+ * To use the real Elza font, place .woff2 files in client/public/fonts/ and
+ * uncomment the @font-face blocks below. Until then, the fallback stack
+ * (Inter, system fonts) provides a similar geometric sans-serif feel.
+ *
+ * Required files:
+ *   Elza-ExtraLight.woff2  (200)
+ *   Elza-Light.woff2       (300)
+ *   Elza-Regular.woff2     (400)
+ *   Elza-Medium.woff2      (500)
+ *   Elza-SemiBold.woff2    (600)
+ */
+
+/* @font-face { font-family: 'Elza'; font-weight: 200; font-style: normal; font-display: swap; src: url('/fonts/Elza-ExtraLight.woff2') format('woff2'); }
+@font-face { font-family: 'Elza'; font-weight: 300; font-style: normal; font-display: swap; src: url('/fonts/Elza-Light.woff2') format('woff2'); }
+@font-face { font-family: 'Elza'; font-weight: 400; font-style: normal; font-display: swap; src: url('/fonts/Elza-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Elza'; font-weight: 500; font-style: normal; font-display: swap; src: url('/fonts/Elza-Medium.woff2') format('woff2'); }
+@font-face { font-family: 'Elza'; font-weight: 600; font-style: normal; font-display: swap; src: url('/fonts/Elza-SemiBold.woff2') format('woff2'); } */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&display=swap');
 
 :root {
-  --button-outline: rgba(0,0,0, .08);
-  --badge-outline: rgba(0,0,0, .04);
-  --opaque-button-border-intensity: -6;
-  --elevate-1: rgba(0,0,0, .02);
-  --elevate-2: rgba(0,0,0, .05);
+  /* ── Spec Color Palette ─────────────────────────────── */
+  --gallea-white: #FFFFFF;
+  --gallea-auth-bg: #EAEAEA;
+  --gallea-brief-bg: #F0F0F0;
+  --gallea-card-border: #E5E5E5;
+  --gallea-light-border: #B7B7B7;
+  --gallea-placeholder: #9B9B9B;
+  --gallea-micro-text: #8E8E8E;
+  --gallea-empty-state: #7E7E7E;
+  --gallea-input-border: #707070;
+  --gallea-muted-text: #585858;
+  --gallea-black: #000000;
+  --gallea-card-shadow: #00000029;
+  --gallea-map-bg: #111111;
+  --gallea-orange: #FF8900;
+  --gallea-red: #FF0000;
+  --gallea-green: #1F9A15;
 
-  /* Warm, soft palette — Apple-inspired warmth */
-  --background: 40 20% 97%;
-  --foreground: 30 10% 15%;
-  --border: 35 10% 90%;
-  --card: 40 30% 99%;
-  --card-foreground: 30 10% 15%;
-  --card-border: 35 12% 92%;
-  --sidebar: 40 25% 98%;
-  --sidebar-foreground: 30 10% 15%;
-  --sidebar-border: 35 10% 92%;
-  --sidebar-primary: 30 10% 15%;
-  --sidebar-primary-foreground: 40 30% 99%;
-  --sidebar-accent: 35 15% 95%;
-  --sidebar-accent-foreground: 30 10% 15%;
-  --sidebar-ring: 30 10% 15%;
-  --popover: 40 30% 99%;
-  --popover-foreground: 30 10% 15%;
-  --popover-border: 35 12% 92%;
+  /* ── Tailwind/shadcn CSS Variable Mapping ───────────── */
+  /* Using raw hex via hsl() workaround: we define as H S% L% for Tailwind */
+  --background: 0 0% 100%;          /* #FFFFFF */
+  --foreground: 0 0% 0%;            /* #000000 */
+  --border: 0 0% 90%;               /* #E5E5E5 */
+  --card: 0 0% 100%;                /* #FFFFFF */
+  --card-foreground: 0 0% 0%;       /* #000000 */
+  --card-border: 0 0% 90%;          /* #E5E5E5 */
+  --sidebar: 0 0% 100%;             /* #FFFFFF */
+  --sidebar-foreground: 0 0% 0%;    /* #000000 */
+  --sidebar-border: 0 0% 90%;       /* #E5E5E5 */
+  --sidebar-primary: 0 0% 0%;       /* #000000 */
+  --sidebar-primary-foreground: 0 0% 100%; /* #FFFFFF */
+  --sidebar-accent: 0 0% 96%;       /* ~#F5F5F5 */
+  --sidebar-accent-foreground: 0 0% 0%;
+  --sidebar-ring: 0 0% 0%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 0%;
+  --popover-border: 0 0% 90%;
 
-  /* Warm charcoal primary — softer than pure black */
-  --primary: 30 10% 18%;
-  --primary-foreground: 40 30% 99%;
-  --secondary: 35 12% 95%;
-  --secondary-foreground: 30 10% 20%;
-  --muted: 35 10% 94%;
-  --muted-foreground: 30 5% 50%;
+  /* Primary = black per spec */
+  --primary: 0 0% 0%;               /* #000000 */
+  --primary-foreground: 0 0% 100%;  /* #FFFFFF */
 
-  /* Friendly warm accent — soft amber/gold */
-  --accent: 38 80% 56%;
-  --accent-foreground: 30 10% 15%;
+  /* Secondary = light gray */
+  --secondary: 0 0% 94%;            /* #F0F0F0 */
+  --secondary-foreground: 0 0% 0%;
 
-  --destructive: 0 60% 50%;
+  /* Muted */
+  --muted: 0 0% 94%;                /* #F0F0F0 */
+  --muted-foreground: 0 0% 35%;     /* #585858 */
+
+  /* Accent = orange per spec */
+  --accent: 33 100% 50%;            /* #FF8900 */
+  --accent-foreground: 0 0% 0%;
+
+  /* Destructive = red per spec */
+  --destructive: 0 100% 50%;        /* #FF0000 */
   --destructive-foreground: 0 0% 100%;
-  --input: 35 10% 85%;
-  --ring: 38 60% 50%;
 
-  /* Charts — warm, friendly palette */
-  --chart-1: 142 50% 45%;
-  --chart-2: 38 80% 56%;
-  --chart-3: 220 50% 55%;
-  --chart-4: 350 60% 55%;
-  --chart-5: 270 45% 55%;
+  /* Input */
+  --input: 0 0% 44%;                /* #707070 */
+  --ring: 0 0% 0%;                  /* #000000 */
 
-  --font-sans: 'Satoshi', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-serif: Georgia, serif;
+  /* Charts */
+  --chart-1: 116 75% 34%;           /* #1F9A15 green */
+  --chart-2: 33 100% 50%;           /* #FF8900 orange */
+  --chart-3: 0 0% 0%;               /* #000000 */
+  --chart-4: 0 100% 50%;            /* #FF0000 */
+  --chart-5: 0 0% 58%;              /* #949494 */
+
+  /* Font stack: Elza first, Inter as fallback */
+  --font-sans: 'Elza', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-mono: 'SF Mono', 'JetBrains Mono', Menlo, monospace;
 
-  /* Generous rounded corners — Apple feel */
-  --radius: 0.75rem;
+  /* Border radius */
+  --radius: 0.5rem;                 /* 8px — spec says 8-12px for cards */
 
-  /* Soft, warm shadows */
-  --shadow-2xs: 0px 1px 2px 0px hsl(30 20% 20% / 0.03);
-  --shadow-xs: 0px 1px 3px 0px hsl(30 20% 20% / 0.04);
-  --shadow-sm: 0 1px 3px hsl(30 20% 20% / 0.06), 0 1px 2px hsl(30 20% 20% / 0.04);
-  --shadow: 0 2px 8px hsl(30 20% 20% / 0.06), 0 1px 3px hsl(30 20% 20% / 0.04);
-  --shadow-md: 0 4px 16px hsl(30 20% 20% / 0.07), 0 2px 6px hsl(30 20% 20% / 0.04);
-  --shadow-lg: 0 8px 30px hsl(30 20% 20% / 0.08), 0 4px 10px hsl(30 20% 20% / 0.04);
-  --shadow-xl: 0 16px 50px hsl(30 20% 20% / 0.10), 0 8px 20px hsl(30 20% 20% / 0.05);
-  --shadow-2xl: 0 24px 60px hsl(30 20% 20% / 0.12);
+  /* Shadows */
+  --shadow-2xs: 0px 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0px 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 16px 50px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.08);
+  --shadow-2xl: 0 24px 60px rgba(0, 0, 0, 0.18);
+  /* Auth card shadow from spec */
+  --shadow-auth: 0px 3px 6px #00000029;
 
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --primary-border: hsl(var(--primary));
-  --secondary-border: hsl(var(--secondary));
-  --muted-border: hsl(var(--muted));
-  --accent-border: hsl(var(--accent));
-  --destructive-border: hsl(var(--destructive));
-}
-
-.dark {
-  --button-outline: rgba(255,255,255, .08);
-  --badge-outline: rgba(255,255,255, .04);
-  --opaque-button-border-intensity: 6;
-  --elevate-1: rgba(255,255,255, .03);
-  --elevate-2: rgba(255,255,255, .06);
-  --background: 30 8% 8%;
-  --foreground: 35 10% 92%;
-  --border: 30 5% 18%;
-  --card: 30 8% 11%;
-  --card-foreground: 35 10% 92%;
-  --card-border: 30 5% 16%;
-  --sidebar: 30 8% 10%;
-  --sidebar-foreground: 35 10% 92%;
-  --sidebar-border: 30 5% 16%;
-  --sidebar-primary: 35 10% 92%;
-  --sidebar-primary-foreground: 30 8% 10%;
-  --sidebar-accent: 30 5% 15%;
-  --sidebar-accent-foreground: 35 10% 92%;
-  --sidebar-ring: 35 10% 92%;
-  --popover: 30 8% 12%;
-  --popover-foreground: 35 10% 92%;
-  --popover-border: 30 5% 18%;
-  --primary: 35 10% 92%;
-  --primary-foreground: 30 8% 10%;
-  --secondary: 30 5% 16%;
-  --secondary-foreground: 35 10% 92%;
-  --muted: 30 5% 18%;
-  --muted-foreground: 30 5% 55%;
-  --accent: 38 80% 56%;
-  --accent-foreground: 30 10% 10%;
-  --destructive: 0 60% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --input: 30 5% 25%;
-  --ring: 38 60% 50%;
-  --chart-1: 142 50% 50%;
-  --chart-2: 38 80% 60%;
-  --chart-3: 220 50% 60%;
-  --chart-4: 350 60% 60%;
-  --chart-5: 270 45% 60%;
-  --shadow-2xs: 0px 1px 2px hsl(0 0% 0% / 0.10);
-  --shadow-xs: 0px 1px 3px hsl(0 0% 0% / 0.15);
-  --shadow-sm: 0 1px 3px hsl(0 0% 0% / 0.15), 0 1px 2px hsl(0 0% 0% / 0.10);
-  --shadow: 0 2px 8px hsl(0 0% 0% / 0.20), 0 1px 3px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 4px 16px hsl(0 0% 0% / 0.25), 0 2px 6px hsl(0 0% 0% / 0.15);
-  --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.30), 0 4px 10px hsl(0 0% 0% / 0.15);
-  --shadow-xl: 0 16px 50px hsl(0 0% 0% / 0.35), 0 8px 20px hsl(0 0% 0% / 0.20);
-  --shadow-2xl: 0 24px 60px hsl(0 0% 0% / 0.40);
+  /* Keep these for shadcn internal usage */
+  --button-outline: rgba(0, 0, 0, 0.08);
+  --badge-outline: rgba(0, 0, 0, 0.04);
+  --opaque-button-border-intensity: -6;
+  --elevate-1: rgba(0, 0, 0, 0.02);
+  --elevate-2: rgba(0, 0, 0, 0.05);
 
   --sidebar-primary-border: hsl(var(--sidebar-primary));
   --sidebar-accent-border: hsl(var(--sidebar-accent));
@@ -150,13 +142,7 @@
 
   body {
     @apply font-sans antialiased bg-background text-foreground;
-    letter-spacing: -0.01em;
-  }
-
-  /* Smoother, more Apple-like text rendering */
-  h1, h2, h3, h4, h5, h6 {
-    letter-spacing: -0.025em;
-    font-weight: 600;
+    font-family: var(--font-sans);
   }
 }
 
