@@ -344,7 +344,7 @@ Generate a JSON response with EXACTLY this structure. Be thorough and specific â
 Return ONLY valid JSON, no markdown code blocks.`;
 
       const message = await anthropic.messages.create({
-        model: "claude_sonnet_4_6",
+        model: "claude-sonnet-4-6",
         max_tokens: 8192,
         messages: [{ role: "user", content: brandMapPrompt }],
       });
@@ -512,7 +512,7 @@ ${profile.mandatories ? `7. BRAND DNA CONTEXT: ${profile.mandatories}` : ""}
       }
 
       const message = await anthropic.messages.create({
-        model: "claude_sonnet_4_6",
+        model: "claude-sonnet-4-6",
         max_tokens: 4096,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }],
@@ -552,7 +552,7 @@ Score each dimension 0-100 and provide specific feedback. Return ONLY valid JSON
 }`;
 
       const scoringMessage = await anthropic.messages.create({
-        model: "claude_sonnet_4_6",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         messages: [{ role: "user", content: scoringPrompt }],
       });
@@ -674,7 +674,7 @@ Score each dimension 0-100 and provide specific feedback. Return ONLY valid JSON
 }`;
 
       const scoringMessage = await anthropic.messages.create({
-        model: "claude_sonnet_4_6",
+        model: "claude-sonnet-4-6",
         max_tokens: 1024,
         messages: [{ role: "user", content: scoringPrompt }],
       });
