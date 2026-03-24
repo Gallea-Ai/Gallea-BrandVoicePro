@@ -56,11 +56,12 @@ import AnalyticsPage from "@/pages/analytics-page";
 import BrandVoicePage from "@/pages/brand-voice-page";
 import SettingsPage from "@/pages/settings-page";
 import FaqPage from "@/pages/faq-page";
+import ProcessingPage from "@/pages/processing-page";
 
 type AppView =
   | "welcome" | "signin" | "signup" | "pricing" | "company-setup"
   | "workspace-setup" | "join-team" | "reset-password" | "assessment"
-  | "create" | "library" | "analytics" | "brand-voice" | "settings" | "faq";
+  | "processing" | "create" | "library" | "analytics" | "brand-voice" | "settings" | "faq";
 
 // Map view names to URL paths
 const VIEW_TO_PATH: Record<string, string> = {
@@ -73,6 +74,7 @@ const VIEW_TO_PATH: Record<string, string> = {
   "workspace-setup": "/workspace-setup",
   "join-team": "/join",
   assessment: "/assessment",
+  processing: "/processing",
   create: "/create",
   library: "/library",
   analytics: "/analytics",
@@ -92,6 +94,7 @@ const PATH_TO_VIEW: Record<string, AppView> = {
   "/workspace-setup": "workspace-setup",
   "/join": "join-team",
   "/assessment": "assessment",
+  "/processing": "processing",
   "/create": "create",
   "/library": "library",
   "/analytics": "analytics",
@@ -360,6 +363,7 @@ function AppContent() {
   const [company, setCompany] = useState<AppCompany | null>(null);
   const [contentVersion, setContentVersion] = useState(0);
   const [sessionLoading, setSessionLoading] = useState(true);
+  const [pendingAssessmentData, setPendingAssessmentData] = useState<Record<string, any>[] | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -483,7 +487,8 @@ function AppContent() {
     },
     onSuccess: () => {
       refetchBrandProfile();
-      navigate("/brand-voice");
+      setPendingAssessmentData(null);
+      // Navigation handled by ProcessingPage after minimum display time
       toast({ title: "Brand voice profile generated", description: "Your brand DNA has been analyzed and your voice profile is ready." });
     },
     onError: (err: any) => {
@@ -527,8 +532,10 @@ function AppContent() {
   }, [navigate]);
 
   const handleAssessmentComplete = useCallback((responses: Record<string, any>[]) => {
+    setPendingAssessmentData(responses);
     generateBrandVoice.mutate(responses);
-  }, [generateBrandVoice]);
+    navigate("/processing");
+  }, [generateBrandVoice, navigate]);
 
   const handleContentGenerated = useCallback(() => {
     setContentVersion(prev => prev + 1);
@@ -561,8 +568,8 @@ function AppContent() {
   const isPlatformPage = platformPages.includes(location.pathname);
   const showSidebar = !!user && !!company && isPlatformPage;
 
-  // ─── Assessment generating state ──
-  const isAssessmentGenerating = generateBrandVoice.isPending;
+  // ─── Brand voice generation state for processing screen ──
+  const isApiDone = !generateBrandVoice.isPending && (generateBrandVoice.isSuccess || generateBrandVoice.isError);
 
   return (
     <div className={showSidebar ? "flex min-h-screen bg-background" : "min-h-screen bg-background"}>
@@ -672,20 +679,22 @@ function AppContent() {
           <Route path="/assessment" element={
             !user ? <Navigate to="/" replace /> :
             !company ? <Navigate to="/workspace-setup" replace /> :
-            isAssessmentGenerating ? (
-              <div className="min-h-screen flex flex-col items-center justify-center bg-background gap-4">
-                <Loader2 className="w-8 h-8 animate-spin text-foreground" />
-                <p className="text-lg font-medium">Analyzing your brand DNA...</p>
-                <p className="text-sm text-muted-foreground">Building voice rules, channel profiles, and archetype mapping</p>
-              </div>
-            ) : (
-              <AssessmentPage
-                onComplete={handleAssessmentComplete}
-                onBack={() => navigate("/create")}
-                companyId={company?.id}
-                userId={user?.id}
-              />
-            )
+            <AssessmentPage
+              onComplete={handleAssessmentComplete}
+              onBack={() => navigate("/create")}
+              companyId={company?.id}
+              userId={user?.id}
+            />
+          } />
+
+          {/* ── Processing Screen ── */}
+          <Route path="/processing" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <ProcessingPage
+              apiDone={isApiDone}
+              onComplete={() => navigate("/brand-voice")}
+            />
           } />
 
           {/* ── Platform pages (require auth + company) ── */}
