@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import Anthropic from "@anthropic-ai/sdk";
+import bcrypt from "bcryptjs";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
@@ -130,7 +131,8 @@ export async function registerRoutes(
       const { username, password, fullName, jobTitle, role, companyId } = req.body;
       const existing = await storage.getUserByUsername(username);
       if (existing) return res.status(400).json({ error: "Username already exists" });
-      const user = await storage.createUser({ username, password, fullName, jobTitle: jobTitle || null, role: role || "member", companyId: companyId || null });
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const user = await storage.createUser({ username, password: hashedPassword, fullName, jobTitle: jobTitle || null, role: role || "member", companyId: companyId || null });
       const visitorId = req.headers["x-visitor-id"] as string;
       if (visitorId) await storage.saveSession(visitorId, user.id);
       res.json(user);
@@ -143,7 +145,10 @@ export async function registerRoutes(
     try {
       const { username, password } = req.body;
       const user = await storage.getUserByUsername(username);
-      if (!user || user.password !== password) return res.status(401).json({ error: "Invalid credentials" });
+      if (!user) return res.status(401).json({ error: "Invalid credentials" });
+      // Support both bcrypt hashed and legacy plaintext passwords
+      const isValid = user.password.startsWith("$2") ? await bcrypt.compare(password, user.password) : user.password === password;
+      if (!isValid) return res.status(401).json({ error: "Invalid credentials" });
       // Save session for persistence
       const visitorId = req.headers["x-visitor-id"] as string;
       if (visitorId) await storage.saveSession(visitorId, user.id);
@@ -247,6 +252,20 @@ export async function registerRoutes(
   app.get("/api/companies/:id/members", async (req, res) => {
     const members = await storage.getUsersByCompany(parseInt(req.params.id));
     res.json(members);
+  });
+
+  app.delete("/api/companies/:id/members/:memberId", async (req, res) => {
+    try {
+      const memberId = parseInt(req.params.memberId);
+      const { db } = await import("./storage");
+      const { users } = await import("@shared/schema");
+      const { eq } = await import("drizzle-orm");
+      // Remove member by setting their companyId to null
+      db.update(users).set({ companyId: null }).where(eq(users.id, memberId)).run();
+      res.json({ removed: true });
+    } catch (e: any) {
+      res.status(400).json({ error: e.message });
+    }
   });
 
   // ──────────────── ASSESSMENT ────────────────

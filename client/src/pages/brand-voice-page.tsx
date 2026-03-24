@@ -16,6 +16,7 @@ import {
 interface BrandVoicePageProps {
   brandProfile: any | null;
   onRetakeAssessment: () => void;
+  userRole?: string;
 }
 
 // ─── Constants ──────────────────────────────────────────────────────────────────
@@ -258,7 +259,7 @@ function BrandProfileView({ territories }: { territories: Record<string, number>
 
 function TerritoryMapView({ territories }: { territories: Record<string, number> | null }) {
   return (
-    <div className="bg-[#0c0c14] rounded-lg p-6 grid grid-cols-4 gap-3" style={{ minHeight: "460px" }}>
+    <div className="bg-[#0c0c14] rounded-lg p-4 sm:p-6 grid grid-cols-2 md:grid-cols-4 gap-3" style={{ minHeight: "460px" }}>
       {TERRITORY_KEYS.map((key, i) => {
         const score = territories ? (territories[key] || 0) : 50;
         return (
@@ -319,8 +320,9 @@ function DangerZoneBadge({ name }: { name: string }) {
 
 // ─── Main Page ──────────────────────────────────────────────────────────────────
 
-export default function BrandVoicePage({ brandProfile, onRetakeAssessment }: BrandVoicePageProps) {
+export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userRole }: BrandVoicePageProps) {
   const [mapView, setMapView] = useState<"heatmap" | "profile" | "territory">("heatmap");
+  const isAdmin = userRole === "admin";
 
   // Parse profile data
   const territories: Record<string, number> | null = useMemo(() => {
@@ -400,14 +402,16 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment }: Bra
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-[36px] font-medium text-black">Brand Voice</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onRetakeAssessment} className="border-[#E5E5E5] text-[14px] font-normal">
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />Retake Assessment
-          </Button>
-          <Button variant="outline" size="sm" className="border-[#E5E5E5] text-[14px] font-normal">
-            <Upload className="w-3.5 h-3.5 mr-1.5" />Upload Brand Documents
-          </Button>
-        </div>
+        {isAdmin && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={onRetakeAssessment} className="border-[#E5E5E5] text-[14px] font-normal">
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />Retake Assessment
+            </Button>
+            <Button variant="outline" size="sm" className="border-[#E5E5E5] text-[14px] font-normal">
+              <Upload className="w-3.5 h-3.5 mr-1.5" />Upload Brand Documents
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* ═══ Section 1: Emotional Territory Map ═══ */}

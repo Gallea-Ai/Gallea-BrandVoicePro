@@ -118,15 +118,15 @@ interface AuthPageProps {
 export function WelcomePage({ onNavigate }: AuthPageProps) {
   return (
     <AuthShell showBackground>
-      <div className="w-full max-w-md text-center">
+      <div className="w-full max-w-md text-center px-4">
         <div className="mb-8">
           <h1 className="text-[16px] font-normal text-black mb-4" data-testid="text-welcome-logo">
             GalleaBrandVoicePro
           </h1>
-          <p className="text-[36px] font-medium text-black leading-tight mb-4">
+          <p className="text-[24px] sm:text-[36px] font-medium text-black leading-tight mb-4">
             AI-powered content that sounds exactly like your brand.
           </p>
-          <p className="text-[60px] font-extralight text-black leading-[1.1]" data-testid="text-welcome-heading">
+          <p className="text-[36px] sm:text-[60px] font-extralight text-black leading-[1.1]" data-testid="text-welcome-heading">
             Welcome. Let's Get You Started.
           </p>
         </div>
@@ -352,10 +352,10 @@ export function PricingPage({ onNavigate }: AuthPageProps) {
 
   return (
     <AuthShell step={2} onBack={() => onNavigate("signup")}>
-      <div className="w-full max-w-4xl">
+      <div className="w-full max-w-4xl px-4">
         <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
         <h2 className="text-[20px] font-medium text-black text-center mb-8">Choose Your Plan</h2>
-        <div className="grid md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isSelected = selected === plan.id;

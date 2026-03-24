@@ -50,7 +50,7 @@ const FAQ_ITEMS = [
 
 export default function FaqPage() {
   return (
-    <div className="w-full max-w-2xl" data-testid="faq-page">
+    <div className="w-full max-w-2xl mx-auto" data-testid="faq-page">
       <div className="mb-6">
         <h1 className="text-xl font-semibold" data-testid="text-page-title">
           FAQ

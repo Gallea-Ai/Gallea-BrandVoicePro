@@ -335,10 +335,10 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
         ))}
       </div>
 
-      {/* Two-column layout */}
-      <div className="flex gap-6">
-        {/* ─── Left Input Panel (~45%) ─── */}
-        <div className="w-[45%] space-y-4" data-testid="input-panel">
+      {/* Two-column layout — stacks on mobile */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        {/* ─── Left Input Panel ─── */}
+        <div className="w-full lg:w-[45%] space-y-4" data-testid="input-panel">
           {/* 1. Content Type dropdown */}
           <div className="space-y-1.5">
             <Label className="text-[14px] font-medium text-black">Content Type</Label>
@@ -482,8 +482,8 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
           )}
         </div>
 
-        {/* ─── Right Output Panel (~55%) ─── */}
-        <div className="w-[55%] bg-white rounded-lg border border-[#E5E5E5] p-6 min-h-[500px] flex flex-col" data-testid="output-panel">
+        {/* ─── Right Output Panel ─── */}
+        <div className="w-full lg:w-[55%] bg-white rounded-lg border border-[#E5E5E5] p-4 sm:p-6 min-h-[400px] lg:min-h-[500px] flex flex-col" data-testid="output-panel">
           {generateMutation.isPending ? (
             <GeneratingAnimation contentType={contentType} />
           ) : result ? (

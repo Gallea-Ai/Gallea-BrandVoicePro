@@ -89,7 +89,7 @@ export default function SettingsPage({
   };
 
   return (
-    <div className="w-full max-w-2xl" data-testid="settings-page">
+    <div className="w-full max-w-2xl mx-auto" data-testid="settings-page">
       <div className="mb-6">
         <h1 className="text-xl font-semibold" data-testid="text-page-title">
           Settings
@@ -130,8 +130,8 @@ export default function SettingsPage({
         </Card>
       )}
 
-      {/* Team Members — always visible (not accordion) */}
-      <Card className="mb-6" data-testid="card-team-members">
+      {/* Team Members — admin only */}
+      {isAdmin && <Card className="mb-6" data-testid="card-team-members">
         <CardContent className="p-5">
           <h2 className="text-sm font-medium mb-4">Team Members</h2>
           <div className="space-y-3">
@@ -230,7 +230,7 @@ export default function SettingsPage({
             )}
           </div>
         </CardContent>
-      </Card>
+      </Card>}
 
       {/* Accordion sections */}
       <Accordion

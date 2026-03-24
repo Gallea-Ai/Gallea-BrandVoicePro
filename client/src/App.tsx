@@ -729,6 +729,7 @@ function AppContent() {
             <BrandVoicePage
               brandProfile={brandProfile}
               onRetakeAssessment={() => navigate("/assessment")}
+              userRole={user.role}
             />
           } />
           <Route path="/settings" element={

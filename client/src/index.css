@@ -225,3 +225,35 @@
     inset: -1px;
   }
 }
+
+/* ═══ Mobile Responsiveness ═══════════════════════════════════════════════════ */
+
+/* Platform page content padding */
+main {
+  padding: 24px 32px;
+}
+@media (max-width: 768px) {
+  main {
+    padding: 16px;
+  }
+}
+
+/* Auth cards: max-width 90vw on mobile */
+@media (max-width: 640px) {
+  [data-testid="step-indicator"] {
+    max-width: 90vw;
+  }
+}
+
+/* Accordion touch targets: minimum 44px */
+[data-radix-accordion-trigger] {
+  min-height: 44px;
+}
+
+/* Global design quality: consistent card padding, text rendering */
+@layer base {
+  h1, h2, h3 {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+}
