@@ -48,6 +48,7 @@ import {
   CompanySetupPage,
   WorkspaceSetupPage,
   JoinTeamPage,
+  AssessmentIntroPage,
 } from "@/pages/auth";
 import AssessmentPage from "@/pages/assessment";
 import CreatePage from "@/pages/create-page";
@@ -60,7 +61,7 @@ import ProcessingPage from "@/pages/processing-page";
 
 type AppView =
   | "welcome" | "signin" | "signup" | "pricing" | "company-setup"
-  | "workspace-setup" | "join-team" | "reset-password" | "assessment"
+  | "workspace-setup" | "join-team" | "reset-password" | "assessment-intro" | "assessment"
   | "processing" | "create" | "library" | "analytics" | "brand-voice" | "settings" | "faq";
 
 // Map view names to URL paths
@@ -73,6 +74,7 @@ const VIEW_TO_PATH: Record<string, string> = {
   "company-setup": "/company-setup",
   "workspace-setup": "/workspace-setup",
   "join-team": "/join",
+  "assessment-intro": "/assessment-intro",
   assessment: "/assessment",
   processing: "/processing",
   create: "/create",
@@ -93,6 +95,7 @@ const PATH_TO_VIEW: Record<string, AppView> = {
   "/company-setup": "company-setup",
   "/workspace-setup": "workspace-setup",
   "/join": "join-team",
+  "/assessment-intro": "assessment-intro",
   "/assessment": "assessment",
   "/processing": "processing",
   "/create": "create",
@@ -512,10 +515,10 @@ function AppContent() {
         if (res.ok) {
           navigate("/create");
         } else {
-          navigate("/assessment");
+          navigate("/assessment-intro");
         }
       } catch {
-        navigate("/assessment");
+        navigate("/assessment-intro");
       }
     } else {
       navigate("/workspace-setup");
@@ -544,7 +547,7 @@ function AppContent() {
   const handleCompanySetupAuth = useCallback((u: any, c: any) => {
     if (c) setCompany(c);
     setUser(prev => prev ? { ...prev, companyId: c?.id || null } : null);
-    navigate("/assessment");
+    navigate("/assessment-intro");
   }, [navigate]);
 
   const handleJoinTeamAuth = useCallback((u: any, c: any) => {
@@ -673,6 +676,13 @@ function AppContent() {
           <Route path="/join" element={
             user ? <JoinTeamPage onNavigate={navigateTo} onAuth={handleJoinTeamAuth} /> :
             <JoinTeamPage onNavigate={navigateTo} onAuth={handleAuth} />
+          } />
+
+          {/* ── Assessment Intro ── */}
+          <Route path="/assessment-intro" element={
+            !user ? <Navigate to="/" replace /> :
+            !company ? <Navigate to="/workspace-setup" replace /> :
+            <AssessmentIntroPage onNavigate={navigateTo} onAuth={handleAuth} />
           } />
 
           {/* ── Assessment ── */}
