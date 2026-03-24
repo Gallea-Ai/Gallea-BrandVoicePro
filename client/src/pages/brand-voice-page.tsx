@@ -102,19 +102,23 @@ function generateWordCloud(territories: Record<string, number> | null): { text: 
     const baseAngle = angles[ti];
     const score = territories ? (territories[TERRITORY_KEYS[ti]] || 50) / 100 : 0.5;
 
-    territoryWords.forEach((word, wi) => {
-      // Distribute words in a cluster around the territory's angular position
-      const spreadAngle = baseAngle + (Math.random() - 0.5) * 0.7;
-      const dist = 0.12 + Math.random() * 0.3;
-      const x = cx + Math.cos(spreadAngle) * dist;
-      const y = cy + Math.sin(spreadAngle) * dist;
+    // Use top 12 words per territory, grid-positioned to avoid overlap
+    const useWords = territoryWords.slice(0, 12);
+    useWords.forEach((word, wi) => {
+      // Grid-based: spread words in a structured arc around the territory angle
+      const row = Math.floor(wi / 4);
+      const col = wi % 4;
+      const angleOffset = (col - 1.5) * 0.12;
+      const distOffset = 0.15 + row * 0.1;
+      const spreadAngle = baseAngle + angleOffset;
+      const x = cx + Math.cos(spreadAngle) * distOffset;
+      const y = cy + Math.sin(spreadAngle) * distOffset;
 
-      // Affinity influenced by territory score
-      const baseAffinity = 0.2 + Math.random() * 0.5;
+      const baseAffinity = 0.3 + (1 - wi / useWords.length) * 0.5;
       const affinity = Math.min(1, baseAffinity * (0.5 + score));
-      const size = 9 + Math.round(affinity * 7);
+      const size = 12 + Math.round(affinity * 4);
 
-      if (x > 0.08 && x < 0.92 && y > 0.08 && y < 0.92) {
+      if (x > 0.06 && x < 0.94 && y > 0.06 && y < 0.94) {
         words.push({ text: word, x, y, affinity, size });
       }
     });
@@ -322,6 +326,7 @@ function DangerZoneBadge({ name }: { name: string }) {
 
 export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userRole }: BrandVoicePageProps) {
   const [mapView, setMapView] = useState<"heatmap" | "profile" | "territory">("heatmap");
+  const [chartsOpen, setChartsOpen] = useState(false);
   const isAdmin = userRole === "admin";
 
   // Parse profile data
@@ -465,7 +470,7 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userR
               </Tooltip>
             </div>
             <p className="text-[24px] font-medium text-black">{brandRightSpace}</p>
-            <p className="text-[12px] font-light text-[#585858] mt-2">
+            <p className="text-[14px] font-light text-[#585858] mt-3 leading-relaxed">
               The unique emotional intersection where your brand is most authentically positioned, derived from your assessment across 96 emotions and 182 personality associations.
             </p>
           </CardContent>
@@ -494,7 +499,7 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userR
             <div className="w-full h-2 rounded-full bg-[#E5E5E5] mt-2">
               <div className="h-full rounded-full bg-black transition-all" style={{ width: `${singularityScore}%` }} />
             </div>
-            <p className="text-[12px] font-light text-[#585858] mt-2">
+            <p className="text-[14px] font-light text-[#585858] mt-3 leading-relaxed">
               How distinctly your brand occupies its emotional territory versus competitors. Derived from emotional differentiation (40%), trait uniqueness (30%), and cross-touchpoint consistency (30%).
             </p>
           </CardContent>
@@ -545,11 +550,17 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userR
         </div>
       </div>
 
-      {/* ═══ Section 4: Additional Charts ═══ */}
+      {/* ═══ Section 4: Brand Intelligence (collapsible) ═══ */}
       <div className="mb-10">
-        <h2 className="text-[20px] font-medium text-black mb-4">Detailed Analytics</h2>
+        <button
+          onClick={() => setChartsOpen(!chartsOpen)}
+          className="text-[20px] font-medium text-black mb-4 flex items-center gap-2 hover:underline"
+        >
+          Brand Intelligence
+          <ChevronDown className={`w-5 h-5 transition-transform ${chartsOpen ? "rotate-180" : ""}`} />
+        </button>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {chartsOpen && <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* 4a. Voice Dimension Breakdown */}
           <Card className="border-[#E5E5E5]">
             <CardContent className="p-5">
@@ -636,7 +647,7 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userR
               </div>
             </CardContent>
           </Card>
-        </div>
+        </div>}
       </div>
 
       {/* ═══ Section 5: Voice Documents ═══ */}

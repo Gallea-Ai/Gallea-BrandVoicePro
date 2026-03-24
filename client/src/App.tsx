@@ -227,17 +227,21 @@ function Sidebar({
         </h1>
       </div>
 
-      {/* Voice Status Block */}
+      {/* Voice Status Block — card treatment */}
       {voiceActive && (
-        <div className="px-1 mb-3 space-y-0.5">
-          <p className="text-[14px] font-light text-black leading-tight">Voice Active</p>
-          <p className="text-[14px] font-light text-black leading-tight">{dominantTerritory}</p>
-          <p className="text-[14px] font-medium leading-tight" style={{ color: "#FF8900" }}>
+        <div className="mx-1 mb-4 p-3 bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg space-y-1">
+          <p className="text-[13px] font-light text-black leading-tight">Voice Active</p>
+          <p className="text-[10px] font-light text-[#9B9B9B] leading-tight">Primary Territory</p>
+          <p className="text-[13px] font-light text-black leading-tight">{dominantTerritory}</p>
+          <p className="text-[13px] font-medium leading-tight" style={{ color: "#FF8900" }}>
             {intensityScore}/10 Core
           </p>
-          <p className="text-[14px] font-light text-black leading-tight">Current Voice</p>
+          <p className="text-[13px] font-light text-black leading-tight">Current Voice</p>
         </div>
       )}
+
+      {/* Divider */}
+      {voiceActive && <div className="mx-1 mb-4 border-t border-[#E5E5E5]" />}
 
       {/* Top Nav Group */}
       <nav className="flex-1 space-y-0.5">
@@ -246,13 +250,13 @@ function Sidebar({
             key={view}
             onClick={() => handleNav(view)}
             data-testid={`nav-${view}`}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[14px] rounded transition-colors ${
+            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded transition-colors ${
               currentView === view
                 ? "font-medium text-black underline"
                 : "font-light text-black hover:bg-[#F0F0F0]"
             }`}
           >
-            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <Icon className="w-[18px] h-[18px] shrink-0" />
             <span className="truncate">{label}</span>
           </button>
         ))}
@@ -265,13 +269,13 @@ function Sidebar({
             key={view}
             onClick={() => handleNav(view)}
             data-testid={`nav-${view}`}
-            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[14px] rounded transition-colors ${
+            className={`w-full flex items-center gap-2 px-2 py-1.5 text-[13px] rounded transition-colors ${
               currentView === view
                 ? "font-medium text-black underline"
                 : "font-light text-black hover:bg-[#F0F0F0]"
             }`}
           >
-            <Icon className="w-3.5 h-3.5 shrink-0" />
+            <Icon className="w-[18px] h-[18px] shrink-0" />
             <span className="truncate">{label}</span>
           </button>
         ))}

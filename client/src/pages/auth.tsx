@@ -12,7 +12,7 @@ const STEP_LABELS = ["Create Account", "Choose Plan", "Set Up Workspace", "Compa
 
 function StepIndicator({ step }: { step: number }) {
   return (
-    <div className="w-full max-w-md mb-4" data-testid="step-indicator">
+    <div className="w-full max-w-lg mb-8" data-testid="step-indicator">
       <div className="flex items-center justify-between">
         {STEP_LABELS.map((label, i) => {
           const stepNum = i + 1;
@@ -21,15 +21,15 @@ function StepIndicator({ step }: { step: number }) {
           return (
             <div key={label} className="flex flex-col items-center flex-1">
               <div className="flex items-center w-full">
-                {i > 0 && <div className={`flex-1 h-[1px] ${isCompleted || isCurrent ? "bg-black" : "bg-[#E5E5E5]"}`} />}
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-medium shrink-0 transition-colors ${
-                  isCompleted ? "bg-black text-white" : isCurrent ? "bg-black/80 text-white" : "bg-[#E5E5E5] text-[#585858]"
+                {i > 0 && <div className={`flex-1 h-[3px] rounded-full ${isCompleted || isCurrent ? "bg-black" : "bg-[#B7B7B7]"}`} />}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-medium shrink-0 transition-colors ${
+                  isCompleted ? "bg-black text-white" : isCurrent ? "bg-black text-white" : "bg-[#B7B7B7] text-[#585858]"
                 }`}>
-                  {isCompleted ? <Check className="w-2.5 h-2.5" /> : stepNum}
+                  {isCompleted ? <Check className="w-3.5 h-3.5" /> : stepNum}
                 </div>
-                {i < STEP_LABELS.length - 1 && <div className={`flex-1 h-[1px] ${isCompleted ? "bg-black" : "bg-[#E5E5E5]"}`} />}
+                {i < STEP_LABELS.length - 1 && <div className={`flex-1 h-[3px] rounded-full ${isCompleted ? "bg-black" : "bg-[#B7B7B7]"}`} />}
               </div>
-              <span className={`text-[9px] mt-1 whitespace-nowrap ${isCurrent ? "text-black font-medium" : "text-[#9B9B9B]"}`}>
+              <span className={`text-[12px] font-light mt-2 whitespace-nowrap ${isCurrent ? "text-black font-medium" : "text-[#9B9B9B]"}`}>
                 {label}
               </span>
             </div>
@@ -40,20 +40,20 @@ function StepIndicator({ step }: { step: number }) {
   );
 }
 
-function AuthShell({ children, showBackground = false, step, onBack }: {
+function AuthShell({ children, showBackground = true, step, onBack }: {
   children: React.ReactNode; showBackground?: boolean; step?: number; onBack?: () => void;
 }) {
   return (
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4 py-8 relative"
-      style={showBackground ? {
+      style={{
         background: "linear-gradient(135deg, #87CEEB 0%, #B0D4F1 25%, #d4d4d8 50%, #e0e0e0 65%, #a8c8e8 80%, #87CEEB 100%)",
-      } : { background: "#FFFFFF" }}
+      }}
     >
       {/* Back link top-left */}
       {onBack && (
         <button onClick={onBack}
-          className={`absolute top-6 left-6 flex items-center gap-1 text-[14px] font-light ${showBackground ? "text-white" : "text-black"} hover:underline`}>
+          className="absolute top-6 left-6 flex items-center gap-1 text-[14px] font-light text-white hover:underline">
           <ChevronLeft className="w-4 h-4" /> Back
         </button>
       )}
@@ -120,7 +120,7 @@ export function WelcomePage({ onNavigate }: AuthPageProps) {
     <AuthShell showBackground>
       <div className="w-full max-w-md text-center px-4">
         <div className="mb-8">
-          <h1 className="text-[16px] font-normal text-black mb-4" data-testid="text-welcome-logo">
+          <h1 className="gallea-wordmark mb-4" data-testid="text-welcome-logo">
             GalleaBrandVoicePro
           </h1>
           <p className="text-[24px] sm:text-[36px] font-medium text-black leading-tight mb-4">
@@ -177,7 +177,7 @@ export function SignInPage({ onNavigate, onAuth }: AuthPageProps) {
   return (
     <AuthShell onBack={() => onNavigate("welcome")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-2">Welcome Back</h2>
           <p className="text-[14px] font-light text-[#585858] text-center mb-6">Sign in to continue where you left off.</p>
@@ -236,7 +236,7 @@ export function SignUpPage({ onNavigate, onAuth }: AuthPageProps) {
   return (
     <AuthShell step={1} onBack={() => onNavigate("welcome")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-6">Create Your Account</h2>
           <SocialAuthButtons />
@@ -287,7 +287,7 @@ export function ResetPasswordPage({ onNavigate }: AuthPageProps) {
   return (
     <AuthShell onBack={() => onNavigate("signin")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-2">Reset Password</h2>
 
@@ -353,17 +353,17 @@ export function PricingPage({ onNavigate }: AuthPageProps) {
   return (
     <AuthShell step={2} onBack={() => onNavigate("signup")}>
       <div className="w-full max-w-4xl px-4">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <h2 className="text-[20px] font-medium text-black text-center mb-8">Choose Your Plan</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {PLANS.map((plan) => {
             const Icon = plan.icon;
             const isSelected = selected === plan.id;
             return (
               <div key={plan.id} onClick={() => setSelected(plan.id)}
-                className={`rounded-xl bg-white p-6 cursor-pointer transition-all border-2 ${
+                className={`rounded-xl bg-white p-6 cursor-pointer transition-all border-2 flex flex-col ${
                   isSelected ? "border-black" : "border-[#E5E5E5]"
-                }`} style={{ boxShadow: "0px 3px 6px #00000029" }}>
+                }`} style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }}>
                 <div className="text-center mb-4">
                   <div className="w-12 h-12 rounded-full bg-[#F0F0F0] flex items-center justify-center mx-auto mb-3">
                     <Icon className="w-6 h-6 text-black" />
@@ -376,17 +376,15 @@ export function PricingPage({ onNavigate }: AuthPageProps) {
                   <span className="text-[14px] text-[#585858]">{plan.period}</span>
                 </div>
                 <p className="text-[13px] font-light text-[#585858] text-center mb-4">{plan.description}</p>
-                <ul className="space-y-2 mb-6">
+                <ul className="space-y-2 flex-1">
                   {plan.features.map((f) => (
-                    <li key={f} className="flex items-start gap-2 text-[13px] text-black">
-                      <Check className="w-3.5 h-3.5 text-[#1F9A15] shrink-0 mt-0.5" />{f}
+                    <li key={f} className="flex items-start gap-2.5 text-[13px] text-[#585858]">
+                      <span className="text-[#B7B7B7] shrink-0 mt-px">--</span>{f}
                     </li>
                   ))}
                 </ul>
                 <Button
-                  className={`w-full rounded-[10px] h-[42px] text-[14px] font-light ${
-                    isSelected ? "bg-black text-white hover:bg-black/90" : "bg-white text-black border border-black hover:bg-[#F0F0F0]"
-                  }`}
+                  className="w-full rounded-[10px] h-[42px] text-[14px] font-light mt-6 bg-black text-white hover:bg-black/90 gallea-btn-primary"
                   onClick={() => { setSelected(plan.id); onNavigate("workspace-setup"); }}>
                   Continue
                 </Button>
@@ -428,7 +426,7 @@ export function CompanySetupPage({ onNavigate, onAuth }: AuthPageProps) {
   return (
     <AuthShell step={4} onBack={() => onNavigate("workspace-setup")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-2">Your Company</h2>
           <p className="text-[14px] font-light text-[#585858] text-center mb-6">Tell us about your brand. You'll be the administrator.</p>
@@ -478,7 +476,7 @@ export function WorkspaceSetupPage({ onNavigate }: AuthPageProps) {
   return (
     <AuthShell step={3} onBack={() => onNavigate("pricing")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-2">Let's Set Up Your Workspace</h2>
           <p className="text-[14px] font-light text-[#585858] text-center mb-6">Choose how you'd like to get started.</p>
@@ -527,7 +525,7 @@ export function JoinTeamPage({ onNavigate, onAuth }: AuthPageProps) {
   return (
     <AuthShell onBack={() => onNavigate("workspace-setup")}>
       <div className="w-full max-w-md">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-2">Join Your Team</h2>
           <p className="text-[14px] font-light text-[#585858] text-center mb-6">
@@ -561,33 +559,18 @@ export function AssessmentIntroPage({ onNavigate }: AuthPageProps) {
   return (
     <AuthShell onBack={() => onNavigate("create")}>
       <div className="w-full max-w-lg">
-        <div className="text-center mb-6"><h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1></div>
+        <div className="text-center mb-6"><h1 className="gallea-wordmark">GalleaBrandVoicePro</h1></div>
         <AuthCard>
           <h2 className="text-[20px] font-medium text-black text-center mb-6">Brand Voice Assessment</h2>
 
-          {/* Stats block */}
-          <div className="grid grid-cols-2 gap-3 mb-6">
-            <div className="bg-[#F0F0F0] rounded-lg p-3 text-center">
-              <p className="text-[20px] font-medium text-black">96</p>
-              <p className="text-[12px] font-light text-[#585858]">positive and negative emotions</p>
-            </div>
-            <div className="bg-[#F0F0F0] rounded-lg p-3 text-center">
-              <p className="text-[20px] font-medium text-black">182</p>
-              <p className="text-[12px] font-light text-[#585858]">personality associations</p>
-            </div>
-            <div className="bg-[#F0F0F0] rounded-lg p-3 text-center">
-              <p className="text-[20px] font-medium text-black">38</p>
-              <p className="text-[12px] font-light text-[#585858]">functional attributes</p>
-            </div>
-            <div className="bg-[#F0F0F0] rounded-lg p-3 text-center">
-              <p className="text-[20px] font-medium text-black">8</p>
-              <p className="text-[12px] font-light text-[#585858]">emotional territories</p>
-            </div>
+          {/* Stats block — stacked bold text lines */}
+          <div className="text-center space-y-2 mb-8">
+            <p className="text-[14px] text-[#585858]"><span className="font-semibold text-black">96</span> positive and negative emotions</p>
+            <p className="text-[14px] text-[#585858]"><span className="font-semibold text-black">182</span> personality associations</p>
+            <p className="text-[14px] text-[#585858]"><span className="font-semibold text-black">38</span> functional attributes</p>
+            <p className="text-[14px] text-[#585858]">Mapping your position across <span className="font-semibold text-black">8 emotional territories</span></p>
+            <p className="text-[14px] text-[#585858]">to generate your <span className="font-semibold text-black">unique brand voice profile</span></p>
           </div>
-
-          <p className="text-[14px] font-light text-[#585858] text-center mb-6">
-            Mapping your position across 8 emotional territories to generate your unique brand voice profile.
-          </p>
 
           {/* Info card */}
           <div className="flex justify-center gap-6 mb-6 py-4 border-y border-[#E5E5E5]">

@@ -71,13 +71,23 @@ function ModuleInterstitial({ moduleTitle, completedCount, total, onContinue, ne
 
 // ─── Draggable Slider ───────────────────────────────────────────────────────────
 
-function DraggableSlider({ value, onChange, min, max, leftLabel, rightLabel, id }: {
+function DraggableSlider({ value, onChange, min, max, leftLabel, rightLabel, id, showDescriptor }: {
   value: number | null; onChange: (v: number) => void; min: number; max: number;
-  leftLabel?: string; rightLabel?: string; id: string;
+  leftLabel?: string; rightLabel?: string; id: string; showDescriptor?: boolean;
 }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const current = value ?? Math.round((min + max) / 2);
   const pct = ((current - min) / (max - min)) * 100;
+
+  // Descriptive words for emotional strength slider (1-10)
+  const getDescriptor = (val: number, range: number): string => {
+    const ratio = (val - 1) / (range - 1);
+    if (ratio <= 0.2) return "Weak";
+    if (ratio <= 0.4) return "Moderate";
+    if (ratio <= 0.6) return "Strong";
+    if (ratio <= 0.8) return "Very Strong";
+    return "Extremely Strong";
+  };
 
   const handleInteraction = useCallback((clientX: number) => {
     if (!trackRef.current) return;
@@ -125,8 +135,8 @@ function DraggableSlider({ value, onChange, min, max, leftLabel, rightLabel, id 
           style={{ left: `${pct}%` }}
         />
       </div>
-      {value !== null && (
-        <p className="text-center text-[12px] text-[#585858] mt-1">{current}</p>
+      {showDescriptor && value !== null && (
+        <p className="text-center text-[12px] text-[#585858] mt-1">{getDescriptor(current, max - min + 1)}</p>
       )}
     </div>
   );
@@ -233,7 +243,7 @@ function ScaleQuestion({ question, value, onChange }: { question: AssessmentQues
       {question.helperText && <p className="text-[14px] font-light text-[#585858]">{question.helperText}</p>}
       <DraggableSlider
         id={question.id} value={value} onChange={onChange}
-        min={1} max={points}
+        min={1} max={points} showDescriptor
         leftLabel={question.scaleLabels?.left} rightLabel={question.scaleLabels?.right}
       />
     </div>
@@ -520,7 +530,7 @@ export default function AssessmentPage({ onComplete, onBack, companyId, userId }
       {/* Top bar: Back | Logo | Counter */}
       <div className="flex items-center justify-between max-w-2xl mx-auto px-4 pt-6 pb-2">
         <button onClick={handleBack} className="text-[14px] font-light text-black hover:underline">Back</button>
-        <h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1>
+        <h1 className="gallea-wordmark">GalleaBrandVoicePro</h1>
         <span className="text-[14px] font-light text-black">{currentModuleIndex + 1} / {ASSESSMENT_MODULES.length}</span>
       </div>
 

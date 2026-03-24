@@ -167,21 +167,21 @@ export const ASSESSMENT_MODULES: AssessmentModule[] = [
         ],
         options: [
           // Security
-          "Reliable","Dependable","Trustworthy",
+          "Reliable","Transparent","Structured",
           // Achievement
-          "Accomplished","Successful","Confident",
+          "Accomplished","Driven","Competitive",
           // Excitement
-          "Bold","Dynamic","Adventurous",
+          "Bold","Energetic","Adventurous",
           // Freedom
-          "Independent","Liberating","Free-spirited",
+          "Independent","Flexible","Unconventional",
           // Connection
-          "Friendly","Inclusive","Warm",
+          "Friendly","Inclusive","Collaborative",
           // Wisdom
-          "Intelligent","Expert","Insightful",
+          "Intelligent","Analytical","Visionary",
           // Pleasure
-          "Rewarding","Enjoyable","Luxurious",
+          "Rewarding","Sensory","Luxurious",
           // Care
-          "Caring","Supportive","Protective",
+          "Supportive","Empathetic","Protective",
         ].map(opt)
       },
       {
@@ -254,7 +254,7 @@ export const ASSESSMENT_MODULES: AssessmentModule[] = [
       },
       {
         id: "cp_6", text: "Are there emotional territories in your category that NO major competitor owns?", type: "single", required: true,
-        options: ["Yes, clear gaps exist","Possibly, but uncertain","No, category is saturated","Don't know"].map(opt)
+        options: ["Yes, clear gaps exist","Possibly, but uncertain","No, category is saturated","Unsure"].map(opt)
       },
       {
         id: "cp_7", text: "If you could 'own' ONE emotional territory in your customers' minds, which would create the most business value?", type: "single", required: true,
@@ -276,27 +276,27 @@ export const ASSESSMENT_MODULES: AssessmentModule[] = [
       },
       {
         id: "bc_2", text: "Website emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_3", text: "Social media emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_4", text: "Advertising emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_5", text: "Physical experience emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_6", text: "Customer service emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_7", text: "Product / packaging emotional consistency:", type: "single", required: true,
-        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Don't know"].map(opt)
+        options: ["Strongly aligned","Mostly aligned","Somewhat aligned","Poorly aligned","Unsure"].map(opt)
       },
       {
         id: "bc_8", text: "Overall, when customers experience your brand across different touchpoints, does it feel like a unified, coherent experience?", type: "single", required: true,
@@ -305,43 +305,38 @@ export const ASSESSMENT_MODULES: AssessmentModule[] = [
     ]
   },
 
-  // ═══ MODULE 6: Performance Indicators (6 questions + 1 challenges multi) ═══
+  // ═══ MODULE 6: Performance Indicators (Q1 removed — duplicated M1 Q7) ═══
   {
     index: 5,
     title: "Performance Indicators",
     subtitle: "Understand brand health and improvement opportunities",
     questions: [
       {
-        id: "pi_1", text: "What percentage of your target market recognizes your brand?", type: "single", required: true,
-        options: ["0–10%","11–25%","26–50%","51–75%","76–100%"].map(opt)
+        id: "pi_1", text: "Among those aware of your brand, what percentage would consider purchasing?", type: "single", required: true,
+        options: ["0–20%","21–40%","41–60%","61–80%","81–100%","Unsure"].map(opt)
       },
       {
-        id: "pi_2", text: "Among those aware of your brand, what percentage would consider purchasing?", type: "single", required: true,
-        options: ["0–20%","21–40%","41–60%","61–80%","81–100%"].map(opt)
+        id: "pi_2", text: "What is your customer retention / repeat purchase rate?", type: "single", required: true,
+        options: ["Very high (80%+ retention)","High (60–79%)","Moderate (40–59%)","Low (20–39%)","Very low (<20%)","Unsure"].map(opt)
       },
       {
-        id: "pi_3", text: "What is your customer retention / repeat purchase rate?", type: "single", required: true,
-        options: ["Very high (80%+ retention)","High (60–79%)","Moderate (40–59%)","Low (20–39%)","Very low (<20%)"].map(opt)
+        id: "pi_3", text: "What percentage of customers actively recommend your brand to others?", type: "single", required: true,
+        options: ["Very high (50%+ are promoters)","High (30–49%)","Moderate (15–29%)","Low (<15%)","Unsure"].map(opt)
       },
       {
-        id: "pi_4", text: "What percentage of customers actively recommend your brand to others?", type: "single", required: true,
-        options: ["Very high (50%+ are promoters)","High (30–49%)","Moderate (15–29%)","Low (<15%)"].map(opt)
-      },
-      {
-        id: "pi_5", text: "Can you charge a price premium compared to category average?", type: "single", required: true,
+        id: "pi_4", text: "Can you charge a price premium compared to category average?", type: "single", required: true,
         options: ["Significant premium (20%+ above avg)","Moderate premium (10–20%)","Slight premium (5–10%)","At parity (category avg)","Below average (discount)"].map(opt)
       },
-      // Q6: Conditional — hidden for new brands (0-2 years)
+      // Conditional — hidden for new brands (0-2 years)
       {
-        id: "pi_6", text: "How has your brand performed over the past 2 years?", type: "single", required: true,
+        id: "pi_5", text: "How has your brand performed over the past 2 years?", type: "single", required: true,
         hideIf: { questionId: "bf_2", value: "new_brand_(0–2_years)", moduleIndex: 0 },
         options: ["Strong growth (20%+ annual)","Moderate growth (10–20%)","Slight growth (5–10%)","Flat / Stagnant (0–5%)","Declining (negative growth)"].map(opt)
       },
-      // Q7: FIXED header — was wrongly labeled "SECOND most important emotion"
       {
-        id: "pi_7", text: "What are your brand's biggest challenges right now?", type: "multi", required: true,
+        id: "pi_6", text: "What are your brand's biggest challenges right now?", type: "multi", required: true,
         hasAllOfAbove: true,
-        options: ["Low awareness / discoverability","Weak differentiation","Inconsistent brand experience","Poor conversion rates","Low customer retention","Price pressure / commoditization","Outdated positioning","Fragmented brand identity","Competitive pressure","Category disruption"].map(opt)
+        options: ["Low awareness / discoverability","Weak differentiation","Inconsistent brand experience","Poor conversion rates","Low customer retention","Price pressure / commoditization","Outdated positioning","Fragmented brand identity","Competitive pressure","Category disruption","Customer acquisition / finding new customers"].map(opt)
       },
     ]
   },

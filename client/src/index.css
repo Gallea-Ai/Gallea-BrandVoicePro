@@ -226,11 +226,53 @@
   }
 }
 
+/* ═══ Design Philosophy: Apple restraint + McKinsey authority ═════════════════ */
+
+/* Floating card treatment — crisp white with subtle shadow */
+.gallea-card {
+  background: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  border: none;
+}
+
+/* Output/secondary panel background */
+.gallea-panel-secondary {
+  background: #FAFAFA;
+}
+
+/* Premium button hover: subtle lift */
+.gallea-btn-primary {
+  transition: all 0.2s ease;
+}
+.gallea-btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Tab pills: more visual weight */
+.gallea-tab {
+  padding: 10px 24px;
+}
+
+/* Premium wordmark treatment */
+.gallea-wordmark {
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 1.5px;
+  color: #000000;
+}
+
 /* ═══ Mobile Responsiveness ═══════════════════════════════════════════════════ */
 
-/* Platform page content padding */
+/* Platform page content padding — generous whitespace */
 main {
-  padding: 24px 32px;
+  padding: 32px 40px;
+}
+@media (max-width: 1024px) {
+  main {
+    padding: 24px 24px;
+  }
 }
 @media (max-width: 768px) {
   main {
@@ -250,10 +292,16 @@ main {
   min-height: 44px;
 }
 
-/* Global design quality: consistent card padding, text rendering */
+/* Global design quality */
 @layer base {
   h1, h2, h3 {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Section spacing */
+  section + section,
+  [data-section] + [data-section] {
+    margin-top: 48px;
   }
 }

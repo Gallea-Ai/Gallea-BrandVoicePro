@@ -314,8 +314,8 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
   return (
     <div className="w-full" data-testid="create-page">
       {/* Wordmark */}
-      <div className="text-center mb-4">
-        <h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1>
+      <div className="text-center mb-6">
+        <h1 className="gallea-wordmark">GalleaBrandVoicePro</h1>
       </div>
 
       {/* Tab pills */}
@@ -324,7 +324,7 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
           <button
             key={tab}
             onClick={() => handleTabChange(tab)}
-            className={`px-5 py-2 rounded-full text-[14px] font-medium transition-colors ${
+            className={`gallea-tab rounded-full text-[14px] font-medium transition-colors ${
               activeTab === tab
                 ? "bg-black text-white"
                 : "bg-white text-black border border-black"
@@ -337,8 +337,8 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
 
       {/* Two-column layout — stacks on mobile */}
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* ─── Left Input Panel ─── */}
-        <div className="w-full lg:w-[45%] space-y-4" data-testid="input-panel">
+        {/* ─── Left Input Panel — floating white card ─── */}
+        <div className="w-full lg:w-[45%] space-y-4 bg-white rounded-xl p-6" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }} data-testid="input-panel">
           {/* 1. Content Type dropdown */}
           <div className="space-y-1.5">
             <Label className="text-[14px] font-medium text-black">Content Type</Label>
@@ -463,7 +463,7 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
           {/* 5. Generate button — dynamic text */}
           <Button
             data-testid="button-generate"
-            className="w-full bg-black text-white hover:bg-black/90 rounded-[10px] text-[14px] font-light"
+            className="w-full bg-black text-white hover:bg-black/90 rounded-[10px] text-[14px] font-light gallea-btn-primary"
             size="lg"
             disabled={!contentIdea.trim() || generateMutation.isPending}
             onClick={() => generateMutation.mutate()}
@@ -483,7 +483,7 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
         </div>
 
         {/* ─── Right Output Panel ─── */}
-        <div className="w-full lg:w-[55%] bg-white rounded-lg border border-[#E5E5E5] p-4 sm:p-6 min-h-[400px] lg:min-h-[500px] flex flex-col" data-testid="output-panel">
+        <div className="w-full lg:w-[55%] bg-[#FAFAFA] rounded-xl p-4 sm:p-6 min-h-[400px] lg:min-h-[500px] flex flex-col" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.04)" }} data-testid="output-panel">
           {generateMutation.isPending ? (
             <GeneratingAnimation contentType={contentType} />
           ) : result ? (
