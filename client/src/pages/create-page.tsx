@@ -315,7 +315,7 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
     <div className="w-full" data-testid="create-page">
       {/* Wordmark */}
       <div className="text-center mb-6">
-        <h1 className="gallea-wordmark">GalleaBrandVoicePro</h1>
+        <h1 className="text-[22px] font-normal text-black" style={{ letterSpacing: "2px" }}>GalleaBrandVoicePro</h1>
       </div>
 
       {/* Tab pills */}
@@ -324,9 +324,9 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
           <button
             key={tab}
             onClick={() => handleTabChange(tab)}
-            className={`gallea-tab rounded-full text-[14px] font-medium transition-colors ${
+            className={`rounded-full text-[14px] font-medium transition-all min-w-[140px] text-center py-2.5 px-6 ${
               activeTab === tab
-                ? "bg-black text-white"
+                ? "bg-black text-white shadow-[0_2px_4px_rgba(0,0,0,0.1)]"
                 : "bg-white text-black border border-black"
             }`}
           >
@@ -338,7 +338,7 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
       {/* Two-column layout — stacks on mobile */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* ─── Left Input Panel — floating white card ─── */}
-        <div className="w-full lg:w-[45%] space-y-4 bg-white rounded-xl p-6" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.06)" }} data-testid="input-panel">
+        <div className="w-full lg:w-[45%] space-y-4 bg-white rounded-xl p-6 border border-[#E5E5E5]" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.1)" }} data-testid="input-panel">
           {/* 1. Content Type dropdown */}
           <div className="space-y-1.5">
             <Label className="text-[14px] font-medium text-black">Content Type</Label>

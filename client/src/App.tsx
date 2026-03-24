@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { queryClient, apiRequest } from "./lib/queryClient";
+import { queryClient, apiRequest, clearVisitorId } from "./lib/queryClient";
 import { QueryClientProvider, useQuery, useMutation } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -189,7 +189,7 @@ function Sidebar({
   if (collapsed && !isMobile) {
     return (
       <aside
-        className="w-10 min-h-screen bg-white border-r border-[#E5E5E5] flex flex-col items-center py-4 overflow-hidden"
+        className="fixed top-0 left-0 w-10 h-screen bg-white border-r border-[#E5E5E5] flex flex-col items-center py-4 overflow-hidden z-30"
         data-testid="sidebar-collapsed"
       >
         <button
@@ -205,7 +205,7 @@ function Sidebar({
 
   return (
     <aside
-      className="min-h-screen bg-white border-r border-[#E5E5E5] flex flex-col py-4 px-2 overflow-hidden"
+      className={`bg-white border-r border-[#E5E5E5] flex flex-col py-4 px-2 overflow-y-auto ${isMobile ? "" : "fixed top-0 left-0 h-screen z-30"}`}
       style={{ width: isMobile ? "200px" : "140px" }}
       data-testid="sidebar"
     >
@@ -534,6 +534,7 @@ function AppContent() {
     try {
       await apiRequest("POST", "/api/auth/logout");
     } catch {}
+    clearVisitorId();
     setUser(null);
     setCompany(null);
     navigate("/");
@@ -583,7 +584,7 @@ function AppContent() {
     : !generateBrandVoice.isPending && (generateBrandVoice.isSuccess || generateBrandVoice.isError);
 
   return (
-    <div className={showSidebar ? "flex min-h-screen bg-background" : "min-h-screen bg-background"}>
+    <div className="min-h-screen bg-[#FAFAFA]">
       {/* Mobile top bar (only on platform pages) */}
       {showSidebar && isMobile && (
         <div className="fixed top-0 left-0 right-0 z-40 h-12 bg-white border-b border-[#E5E5E5] flex items-center px-3" data-testid="mobile-topbar">
@@ -652,7 +653,7 @@ function AppContent() {
         />
       )}
 
-      <main className={`flex-1 overflow-auto ${showSidebar && isMobile ? "pt-12" : ""}`}>
+      <main className={`flex-1 overflow-auto ${showSidebar && isMobile ? "pt-12" : ""}`} style={showSidebar && !isMobile ? { marginLeft: sidebarCollapsed ? "40px" : "140px" } : undefined}>
         <Routes>
           {/* ── Auth / Onboarding routes ── */}
           <Route path="/" element={

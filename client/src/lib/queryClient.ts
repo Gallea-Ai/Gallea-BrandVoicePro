@@ -9,14 +9,28 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-// Visitor ID persists for the lifetime of the page session (survives SPA navigation)
-// Cannot use localStorage in sandboxed iframes, so we use a module-level variable
+// Visitor ID persists across page refreshes via localStorage
+// Falls back to module-level variable if localStorage is unavailable (sandboxed iframes)
 let _visitorId: string | null = null;
 function getVisitorId(): string {
   if (!_visitorId) {
-    _visitorId = crypto.randomUUID();
+    try {
+      _visitorId = localStorage.getItem("gallea_visitor_id");
+      if (!_visitorId) {
+        _visitorId = crypto.randomUUID();
+        localStorage.setItem("gallea_visitor_id", _visitorId);
+      }
+    } catch {
+      // localStorage unavailable (sandboxed iframe)
+      _visitorId = crypto.randomUUID();
+    }
   }
   return _visitorId;
+}
+
+export function clearVisitorId() {
+  _visitorId = null;
+  try { localStorage.removeItem("gallea_visitor_id"); } catch {}
 }
 
 export async function apiRequest(

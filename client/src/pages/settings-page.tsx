@@ -96,8 +96,8 @@ export default function SettingsPage({
         </h1>
       </div>
 
-      {/* Invite Team Card — admin only, shown first */}
-      {isAdmin && company && (
+      {/* Invite Team Card — REMOVED per spec (duplicates Access Key accordion) */}
+      {false && isAdmin && company && (
         <Card className="mb-6 border-primary/20 bg-primary/5" data-testid="card-invite-team">
           <CardContent className="p-5">
             <div className="flex items-start gap-3">
@@ -235,7 +235,7 @@ export default function SettingsPage({
       {/* Accordion sections */}
       <Accordion
         type="multiple"
-        defaultValue={isAdmin ? ["access-key"] : []}
+        defaultValue={[]}
         className="space-y-2"
         data-testid="settings-accordion"
       >

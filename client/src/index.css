@@ -263,6 +263,28 @@
   color: #000000;
 }
 
+/* Platform interior depth cues */
+.gallea-page-title {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #E5E5E5;
+  margin-bottom: 24px;
+}
+
+/* Library content cards — left border accent */
+[data-testid="content-list"] > div {
+  border-left: 3px solid #000000;
+}
+
+/* Interactive hover states */
+button:not(:disabled) {
+  transition: all 0.15s ease;
+}
+
+/* Accordion hover */
+[data-radix-accordion-trigger]:hover {
+  background-color: #FAFAFA;
+}
+
 /* ═══ Mobile Responsiveness ═══════════════════════════════════════════════════ */
 
 /* Platform page content padding — generous whitespace */

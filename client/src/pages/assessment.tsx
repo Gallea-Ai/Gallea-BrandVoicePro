@@ -207,7 +207,7 @@ function MultiQuestion({ question, value, onChange }: { question: AssessmentQues
                   return (
                     <button key={opt.value} type="button" onClick={() => toggleOption(opt.value)}
                       className={`px-3 py-1.5 rounded text-[14px] border transition-colors ${
-                        selected ? "bg-black text-white border-black font-medium" : "bg-white text-black border-black font-light"
+                        selected ? "bg-black text-white border-black font-light" : "bg-white text-black border-black font-light"
                       }`}
                     >{opt.label}</button>
                   );
@@ -223,7 +223,7 @@ function MultiQuestion({ question, value, onChange }: { question: AssessmentQues
               return (
                 <button key={opt.value} type="button" onClick={() => toggleOption(opt.value)}
                   className={`px-3 py-1.5 rounded text-[14px] border transition-colors ${
-                    selected ? "bg-black text-white border-black font-medium" : "bg-white text-black border-black font-light"
+                    selected ? "bg-black text-white border-black font-light" : "bg-white text-black border-black font-light"
                   }`}
                 >{opt.label}</button>
               );
@@ -517,7 +517,7 @@ export default function AssessmentPage({ onComplete, onBack, companyId, userId }
     return (
       <ModuleInterstitial
         moduleTitle={currentModule.title}
-        completedCount={completedModules.length + 1}
+        completedCount={completedModules.length}
         total={ASSESSMENT_MODULES.length}
         onContinue={handleInterstitialDone}
         nextModuleName={nextModule?.title || "Next Module"}

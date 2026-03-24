@@ -14,6 +14,13 @@ function generateAccessCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+// Strip password from user objects before sending to client
+function sanitizeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safe } = user;
+  return safe;
+}
+
 export async function registerRoutes(
   httpServer: Server,
   app: Express
@@ -135,7 +142,7 @@ export async function registerRoutes(
       const user = await storage.createUser({ username, password: hashedPassword, fullName, jobTitle: jobTitle || null, role: role || "member", companyId: companyId || null });
       const visitorId = req.headers["x-visitor-id"] as string;
       if (visitorId) await storage.saveSession(visitorId, user.id);
-      res.json(user);
+      res.json(sanitizeUser(user));
     } catch (e: any) {
       res.status(400).json({ error: e.message });
     }
@@ -152,7 +159,7 @@ export async function registerRoutes(
       // Save session for persistence
       const visitorId = req.headers["x-visitor-id"] as string;
       if (visitorId) await storage.saveSession(visitorId, user.id);
-      res.json(user);
+      res.json(sanitizeUser(user));
     } catch (e: any) {
       res.status(400).json({ error: e.message });
     }
@@ -171,7 +178,7 @@ export async function registerRoutes(
     if (user.companyId) {
       company = await storage.getCompany(user.companyId);
     }
-    res.json({ user, company });
+    res.json({ user: sanitizeUser(user), company });
   });
 
   // Create session after login
@@ -209,7 +216,7 @@ export async function registerRoutes(
         companyId: companyId !== undefined ? companyId : user.companyId,
         jobTitle: jobTitle !== undefined ? jobTitle : user.jobTitle,
       }).where(eq(users.id, userId)).returning().get();
-      res.json(updated);
+      res.json(sanitizeUser(updated));
     } catch (e: any) {
       res.status(400).json({ error: e.message });
     }
@@ -251,7 +258,7 @@ export async function registerRoutes(
 
   app.get("/api/companies/:id/members", async (req, res) => {
     const members = await storage.getUsersByCompany(parseInt(req.params.id));
-    res.json(members);
+    res.json(members.map(sanitizeUser));
   });
 
   app.delete("/api/companies/:id/members/:memberId", async (req, res) => {

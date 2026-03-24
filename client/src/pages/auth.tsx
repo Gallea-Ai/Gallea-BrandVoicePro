@@ -67,8 +67,8 @@ function AuthShell({ children, showBackground = true, step, onBack }: {
 // Auth card wrapper with #EAEAEA top band and shadow
 function AuthCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl overflow-hidden ${className}`}
-      style={{ boxShadow: "0px 3px 6px #00000029" }}>
+    <div className={`rounded-2xl overflow-hidden ${className}`}
+      style={{ boxShadow: "0 4px 20px rgba(0,0,0,0.08)" }}>
       {/* EAEAEA top band fading to white */}
       <div style={{ background: "linear-gradient(to bottom, #EAEAEA 0%, #FFFFFF 40%)" }} className="p-8">
         {children}
@@ -120,7 +120,7 @@ export function WelcomePage({ onNavigate }: AuthPageProps) {
     <AuthShell showBackground>
       <div className="w-full max-w-md text-center px-4">
         <div className="mb-8">
-          <h1 className="gallea-wordmark mb-4" data-testid="text-welcome-logo">
+          <h1 className="text-[24px] font-normal text-black mb-4" style={{ letterSpacing: "2px" }} data-testid="text-welcome-logo">
             GalleaBrandVoicePro
           </h1>
           <p className="text-[24px] sm:text-[36px] font-medium text-black leading-tight mb-4">
