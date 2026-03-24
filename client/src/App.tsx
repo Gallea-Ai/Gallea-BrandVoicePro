@@ -503,6 +503,23 @@ function AppContent() {
     },
   });
 
+  // Seed demo brand voice profile (no API key needed)
+  const seedDemo = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest("POST", "/api/brand-voice/seed-demo", {
+        companyId: company!.id,
+      });
+      return await res.json();
+    },
+    onSuccess: () => {
+      refetchBrandProfile();
+      toast({ title: "Demo data loaded", description: "A sample brand voice profile is now available for exploration." });
+    },
+    onError: (err: any) => {
+      toast({ title: "Error", description: err.message, variant: "destructive" });
+    },
+  });
+
   const handleAuth = useCallback(async (userData: any, companyData: any) => {
     setUser(userData);
 
@@ -739,6 +756,8 @@ function AppContent() {
             <BrandVoicePage
               brandProfile={brandProfile}
               onRetakeAssessment={() => navigate("/assessment-intro")}
+              onLoadDemo={() => seedDemo.mutate()}
+              demoLoading={seedDemo.isPending}
               userRole={user.role}
             />
           } />

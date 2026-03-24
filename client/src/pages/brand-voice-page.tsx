@@ -16,6 +16,8 @@ import {
 interface BrandVoicePageProps {
   brandProfile: any | null;
   onRetakeAssessment: () => void;
+  onLoadDemo?: () => void;
+  demoLoading?: boolean;
   userRole?: string;
 }
 
@@ -324,7 +326,7 @@ function DangerZoneBadge({ name }: { name: string }) {
 
 // ─── Main Page ──────────────────────────────────────────────────────────────────
 
-export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userRole }: BrandVoicePageProps) {
+export default function BrandVoicePage({ brandProfile, onRetakeAssessment, onLoadDemo, demoLoading, userRole }: BrandVoicePageProps) {
   const [mapView, setMapView] = useState<"heatmap" | "profile" | "territory">("heatmap");
   const [chartsOpen, setChartsOpen] = useState(false);
   const isAdmin = userRole === "admin";
@@ -397,7 +399,14 @@ export default function BrandVoicePage({ brandProfile, onRetakeAssessment, userR
     return (
       <div className="w-full flex flex-col items-center justify-center py-20">
         <p className="text-[14px] text-[#585858] mb-4">Complete the brand assessment to unlock your Brand Voice dashboard.</p>
-        <Button onClick={onRetakeAssessment} className="bg-black text-white">Start Assessment</Button>
+        <div className="flex gap-3">
+          <Button onClick={onRetakeAssessment} className="bg-black text-white">Start Assessment</Button>
+          {onLoadDemo && (
+            <Button variant="outline" onClick={onLoadDemo} disabled={demoLoading} className="border-[#E5E5E5] text-[14px] font-normal">
+              {demoLoading ? "Loading..." : "Load Demo Data"}
+            </Button>
+          )}
+        </div>
       </div>
     );
   }

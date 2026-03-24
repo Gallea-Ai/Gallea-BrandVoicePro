@@ -8,7 +8,9 @@ import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 import { Strategy as FacebookStrategy } from "passport-facebook";
 import session from "express-session";
 
-const anthropic = new Anthropic();
+function getAnthropicClient() {
+  return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+}
 
 function generateAccessCode(): string {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -369,7 +371,7 @@ Generate a JSON response with EXACTLY this structure. Be thorough and specific �
 
 Return ONLY valid JSON, no markdown code blocks.`;
 
-      const message = await anthropic.messages.create({
+      const message = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 8192,
         messages: [{ role: "user", content: brandMapPrompt }],
@@ -437,9 +439,232 @@ Return ONLY valid JSON, no markdown code blocks.`;
     }
   });
 
+  // ──────────────── SEED DEMO DATA (no API key required) ────────────────
+  app.post("/api/brand-voice/seed-demo", async (req, res) => {
+    try {
+      const companyId = parseInt(req.body.companyId);
+      if (!companyId || isNaN(companyId)) return res.status(400).json({ error: "companyId is required" });
+      console.log("[seed-demo] Saving demo profile for companyId:", companyId);
+
+      const profileData = {
+        emotionalTerritories: {
+          trust_security: 82,
+          achievement_success: 74,
+          excitement_energy: 58,
+          freedom_independence: 45,
+          connection_belonging: 88,
+          intelligence_wisdom: 91,
+          pleasure_enjoyment: 63,
+          care_nurturing: 70,
+        },
+        brandRightSpace: "Intelligent + Warm",
+        singularityScore: 78,
+        differentiators: [
+          "Human-centered technology approach",
+          "Expertise distilled into accessible language",
+          "Thought leadership grounded in real outcomes",
+          "Community-first growth model",
+          "Transparent and opinionated communication",
+        ],
+        dangerZones: [
+          "Corporate jargon and buzzword overload",
+          "Cold or detached technical tone",
+          "Overpromising or hype-driven language",
+          "Passive voice and vague hedging",
+          "Dismissive or elitist framing",
+        ],
+        positiveTraits: [
+          "Insightful",
+          "Approachable",
+          "Confident",
+          "Empathetic",
+          "Precise",
+          "Energizing",
+          "Trustworthy",
+          "Forward-thinking",
+        ],
+        negativeTraits: [
+          "synergy",
+          "disrupt",
+          "leverage",
+          "circle back",
+          "low-hanging fruit",
+          "move the needle",
+          "best-in-class",
+          "at the end of the day",
+          "it is what it is",
+          "paradigm shift",
+        ],
+        brandDNA: {
+          corePromise: "We make complex ideas clear and actionable so teams can build with confidence.",
+          primaryMotivation: "wisdom",
+          secondaryMotivation: "connection",
+          archetypePrimary: "Sage",
+          archetypeSecondary: "Creator",
+          archetypeExclusions: ["Jester", "Rebel", "Ruler"],
+          emotionalOutcomes: [
+            "Feeling informed and empowered",
+            "A sense of belonging to a thoughtful community",
+            "Confidence to take the next step",
+            "Trust that guidance is earned, not assumed",
+          ],
+        },
+        traitVector: {
+          bold_reserved: 0.65,
+          modern_classic: 0.78,
+          luxury_mass: 0.42,
+          playful_serious: 0.38,
+          warm_cool: 0.82,
+          innovative_traditional: 0.75,
+          accessible_exclusive: 0.85,
+        },
+        voiceRules: {
+          sentenceStyle: "Short to medium sentences with occasional longer ones for emphasis. Lead with the point, then support it. Use questions sparingly but effectively to invite reflection.",
+          vocabulary: "Elevated but accessible — the vocabulary of a knowledgeable friend, not a textbook. Prefer concrete nouns and active verbs. Technical terms are fine when they add precision, but always pair them with plain-language context.",
+          tone: "Confident, warm, and direct. Think of a trusted advisor who genuinely cares about your success. Never preachy, never distant — conversational authority.",
+          avoid: [
+            "Corporate buzzwords (synergy, leverage, disrupt)",
+            "Filler phrases (in order to, at the end of the day)",
+            "Hyperbolic claims (revolutionary, game-changing)",
+            "Passive constructions where active voice works",
+            "Exclamation marks in professional content",
+          ],
+          ctaStyle: "Invitational and assured — 'Explore the guide' over 'Click here now!' Suggest, don't demand. Make the next step feel natural, not urgent.",
+          formality: "5",
+          emotionalIntensity: "6",
+        },
+        channelProfiles: {
+          website: {
+            toneAdjust: "Slightly more polished and structured. Lead with value propositions.",
+            structureNotes: "Use clear headings, short paragraphs (2-3 sentences), and strategic whitespace. Every section should answer 'why should I care?'",
+            lengthGuidance: "Headlines: 6-10 words. Body sections: 50-150 words. CTAs: 3-6 words.",
+          },
+          social_linkedin: {
+            toneAdjust: "Thought-leadership forward. More opinionated and conversational than website copy.",
+            structureNotes: "Hook in first line. Use line breaks for readability. End with a question or clear takeaway.",
+            lengthGuidance: "Posts: 100-200 words. Comments: 1-3 sentences.",
+          },
+          social_instagram: {
+            toneAdjust: "Warmer, more personal. Show the human side. Slightly more playful.",
+            structureNotes: "Lead with a relatable insight or story. Use emojis sparingly (1-2 max). Break into short lines.",
+            lengthGuidance: "Captions: 50-150 words. Stories: 1-2 sentences per slide.",
+          },
+          social_twitter: {
+            toneAdjust: "Punchy, direct, and confident. Distill ideas to their sharpest form.",
+            structureNotes: "One idea per tweet. Use threads for depth. No hashtag spam — 1-2 max if relevant.",
+            lengthGuidance: "Single tweets: under 200 characters for maximum engagement. Threads: 3-7 tweets.",
+          },
+          email: {
+            toneAdjust: "Personable and respectful of the reader's time. Feels like a note from a colleague.",
+            structureNotes: "Clear subject line. One key message per email. Scannable with bold key points. Single CTA.",
+            lengthGuidance: "Subject: 4-8 words. Body: 100-250 words. CTA: one clear action.",
+          },
+          blog: {
+            toneAdjust: "Most expansive and educational. Showcase depth of expertise while staying engaging.",
+            structureNotes: "Strong hook intro. Use H2/H3 subheadings. Include examples and data. End with actionable takeaway.",
+            lengthGuidance: "800-1500 words. Intro: 50-100 words. Sections: 150-300 words each.",
+          },
+          brochure: {
+            toneAdjust: "Polished and persuasive. Balance aspiration with concrete proof points.",
+            structureNotes: "Headline + subhead pattern. Bullet key benefits. Include testimonials or data points.",
+            lengthGuidance: "Headlines: 3-8 words. Body blocks: 30-75 words. Bullet points: 5-10 words each.",
+          },
+          sales: {
+            toneAdjust: "Consultative, not pushy. Position as a knowledgeable partner solving a real problem.",
+            structureNotes: "Lead with the prospect's challenge. Present solution with evidence. Clear next steps.",
+            lengthGuidance: "Pitch decks: 10-15 slides, 20-40 words per slide. Proposals: 2-4 pages.",
+          },
+          ads: {
+            toneAdjust: "High-impact and concise. Every word earns its place. Confident without being aggressive.",
+            structureNotes: "Headline grabs attention. Body delivers one clear benefit. CTA is specific and inviting.",
+            lengthGuidance: "Headlines: 3-7 words. Body: 10-25 words. CTA: 2-4 words.",
+          },
+        },
+        voicePrompt: `You are the voice of a brand that sits at the intersection of intelligence and warmth — a Sage-Creator archetype that makes complex ideas accessible without dumbing them down.
+
+CORE IDENTITY: You are a trusted advisor who genuinely cares about your audience's success. Your expertise is deep, but you wear it lightly. You believe that the best ideas are the ones people can actually use, so you always ground insight in action.
+
+TONE & REGISTER: Confident, warm, and direct. Think of the smartest person in the room who also happens to be the most approachable. You speak with authority earned through experience, not claimed through title. Your emotional register sits at a 6/10 — engaged and caring, but never overwrought.
+
+VOCABULARY: Elevated but accessible. You are the knowledgeable friend, not the textbook. Prefer concrete nouns and active verbs. Technical terms are welcome when they add precision, but always provide context. Avoid corporate buzzwords entirely — no "synergy," "leverage," "disrupt," or "paradigm shift."
+
+SENTENCE STRUCTURE: Short to medium sentences are your default. Lead with the point, then support it. Use occasional longer sentences for rhythm and emphasis. Questions are a tool — use them sparingly to invite reflection, not as a crutch.
+
+EMOTIONAL OUTCOMES: After encountering your content, readers should feel: informed and empowered, part of a thoughtful community, confident about their next step, and trusting that your guidance is earned.
+
+DO: Be specific over general. Use real examples. Acknowledge complexity honestly. Show your thinking. Make the reader feel smart, not small. Write with energy and forward momentum.
+
+DO NOT: Use passive voice where active works. Resort to hype or hyperbole. Use filler phrases. Add exclamation marks in professional content. Be preachy, condescending, or detached. Use more than 1-2 emojis in any single piece.
+
+BRAND GOVERNANCE: Never use these words or phrases: synergy, disrupt, leverage, circle back, low-hanging fruit, move the needle, best-in-class, at the end of the day, it is what it is, paradigm shift. These represent the opposite of what this brand stands for.
+
+CHANNEL AWARENESS: Adapt length and formality to the channel — punchier on social, more expansive in blog and email, most polished on website and brochure — but never compromise the core voice. The brand should be instantly recognizable everywhere.`,
+      };
+
+      // Save using the exact same pipeline as the real generation endpoint
+      const profile = await storage.saveBrandVoiceProfile({
+        companyId,
+        emotionalTerritories: JSON.stringify(profileData.emotionalTerritories),
+        brandRightSpace: profileData.brandRightSpace,
+        singularityScore: profileData.singularityScore,
+        differentiators: JSON.stringify(profileData.differentiators),
+        dangerZones: JSON.stringify(profileData.dangerZones),
+        voicePrompt: profileData.voicePrompt,
+        positiveTraits: JSON.stringify(profileData.positiveTraits),
+        negativeTraits: JSON.stringify(profileData.negativeTraits),
+        mandatories: JSON.stringify({
+          brandDNA: profileData.brandDNA,
+          traitVector: profileData.traitVector,
+        }),
+      });
+
+      console.log("[seed-demo] Saved profile id:", profile.id, "companyId:", profile.companyId);
+
+      if (profileData.voiceRules) {
+        await storage.saveVoiceRules({
+          companyId,
+          sentenceStyle: profileData.voiceRules.sentenceStyle,
+          vocabulary: profileData.voiceRules.vocabulary,
+          tone: profileData.voiceRules.tone,
+          avoid: JSON.stringify(profileData.voiceRules.avoid),
+          ctaStyle: profileData.voiceRules.ctaStyle,
+          formality: String(profileData.voiceRules.formality),
+          emotionalIntensity: String(profileData.voiceRules.emotionalIntensity),
+        });
+      }
+
+      if (profileData.channelProfiles) {
+        await storage.saveChannelProfiles({
+          companyId,
+          profiles: JSON.stringify(profileData.channelProfiles),
+        });
+      }
+
+      // Verify the profile can be retrieved
+      const verify = await storage.getBrandVoiceProfile(companyId);
+      console.log("[seed-demo] Verification GET:", verify ? `found (id=${verify.id})` : "NOT FOUND");
+
+      res.json({
+        ...profile,
+        voiceRules: profileData.voiceRules,
+        channelProfiles: profileData.channelProfiles,
+        brandDNA: profileData.brandDNA,
+        traitVector: profileData.traitVector,
+      });
+    } catch (e: any) {
+      console.error("Seed demo error:", e);
+      res.status(400).json({ error: e.message });
+    }
+  });
+
   app.get("/api/brand-voice/:companyId", async (req, res) => {
-    const profile = await storage.getBrandVoiceProfile(parseInt(req.params.companyId));
-    if (!profile) return res.status(404).json({ error: "No brand voice profile found" });
+    const cid = parseInt(req.params.companyId);
+    console.log("[brand-voice GET] Looking up companyId:", cid, "raw param:", req.params.companyId);
+    const profile = await storage.getBrandVoiceProfile(cid);
+    if (!profile) {
+      console.log("[brand-voice GET] No profile found for companyId:", cid);
+      return res.status(404).json({ error: "No brand voice profile found" });
+    }
     const voiceRulesData = await storage.getVoiceRules(parseInt(req.params.companyId));
     const channelProfilesData = await storage.getChannelProfiles(parseInt(req.params.companyId));
     res.json({
@@ -544,7 +769,7 @@ ${profile.mandatories ? `7. BRAND DNA CONTEXT: ${profile.mandatories}` : ""}
         console.log(`[Regeneration Feedback] Company ${companyId}, Type: ${contentType}, Feedback: ${regenerationFeedback}`);
       }
 
-      const message = await anthropic.messages.create({
+      const message = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 4096,
         system: systemPrompt,
@@ -584,7 +809,7 @@ Score each dimension 0-100 and provide specific feedback. Return ONLY valid JSON
   "recommendations": ["<specific improvements suggested>"]
 }`;
 
-      const scoringMessage = await anthropic.messages.create({
+      const scoringMessage = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 1024,
         messages: [{ role: "user", content: scoringPrompt }],
@@ -706,7 +931,7 @@ Score each dimension 0-100 and provide specific feedback. Return ONLY valid JSON
   "recommendations": ["<specific improvements suggested>"]
 }`;
 
-      const scoringMessage = await anthropic.messages.create({
+      const scoringMessage = await getAnthropicClient().messages.create({
         model: "claude-sonnet-4-6",
         max_tokens: 1024,
         messages: [{ role: "user", content: scoringPrompt }],
