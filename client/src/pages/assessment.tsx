@@ -243,12 +243,31 @@ function ScaleQuestion({ question, value, onChange }: { question: AssessmentQues
 function SpectrumGroupQuestion({ question, values, onChange }: {
   question: AssessmentQuestion; values: Record<string, number>; onChange: (id: string, val: number) => void;
 }) {
+  // Auto-initialize all sliders to middle value so validation passes
+  useEffect(() => {
+    if (!question.spectrums) return;
+    let needsInit = false;
+    for (const s of question.spectrums) {
+      if (values[s.id] === undefined || values[s.id] === null) {
+        needsInit = true;
+        break;
+      }
+    }
+    if (needsInit) {
+      for (const s of question.spectrums) {
+        if (values[s.id] === undefined || values[s.id] === null) {
+          onChange(s.id, Math.ceil(s.points / 2));
+        }
+      }
+    }
+  }, []);
+
   return (
     <div className="space-y-6" data-testid={`question-${question.id}`}>
       <Label className="text-[20px] font-medium leading-relaxed text-black">{question.text}</Label>
       {question.spectrums?.map((s) => (
         <DraggableSlider
-          key={s.id} id={s.id} value={values[s.id] ?? null} onChange={(v) => onChange(s.id, v)}
+          key={s.id} id={s.id} value={values[s.id] ?? Math.ceil(s.points / 2)} onChange={(v) => onChange(s.id, v)}
           min={1} max={s.points}
           leftLabel={s.left} rightLabel={s.right}
         />

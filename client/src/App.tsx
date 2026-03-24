@@ -521,7 +521,8 @@ function AppContent() {
         navigate("/assessment-intro");
       }
     } else {
-      navigate("/workspace-setup");
+      // New user without company — send to pricing (next step in onboarding)
+      navigate("/pricing");
     }
   }, [navigate]);
 
@@ -572,7 +573,10 @@ function AppContent() {
   const showSidebar = !!user && !!company && isPlatformPage;
 
   // ─── Brand voice generation state for processing screen ──
-  const isApiDone = !generateBrandVoice.isPending && (generateBrandVoice.isSuccess || generateBrandVoice.isError);
+  // isIdle means mutation was never triggered — redirect away from processing
+  const isApiDone = generateBrandVoice.isIdle
+    ? false
+    : !generateBrandVoice.isPending && (generateBrandVoice.isSuccess || generateBrandVoice.isError);
 
   return (
     <div className={showSidebar ? "flex min-h-screen bg-background" : "min-h-screen bg-background"}>
@@ -691,7 +695,7 @@ function AppContent() {
             !company ? <Navigate to="/workspace-setup" replace /> :
             <AssessmentPage
               onComplete={handleAssessmentComplete}
-              onBack={() => navigate("/create")}
+              onBack={() => navigate("/assessment-intro")}
               companyId={company?.id}
               userId={user?.id}
             />
@@ -701,6 +705,7 @@ function AppContent() {
           <Route path="/processing" element={
             !user ? <Navigate to="/" replace /> :
             !company ? <Navigate to="/workspace-setup" replace /> :
+            generateBrandVoice.isIdle ? <Navigate to="/create" replace /> :
             <ProcessingPage
               apiDone={isApiDone}
               onComplete={() => navigate("/brand-voice")}
@@ -728,7 +733,7 @@ function AppContent() {
             !company ? <Navigate to="/workspace-setup" replace /> :
             <BrandVoicePage
               brandProfile={brandProfile}
-              onRetakeAssessment={() => navigate("/assessment")}
+              onRetakeAssessment={() => navigate("/assessment-intro")}
               userRole={user.role}
             />
           } />

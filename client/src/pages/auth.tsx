@@ -229,7 +229,7 @@ export function SignUpPage({ onNavigate, onAuth }: AuthPageProps) {
       const res = await apiRequest("POST", "/api/auth/register", { username: email, password, fullName, role: "admin" });
       const user = await res.json();
       (window as any).__pendingUser = user;
-      onNavigate("pricing");
+      onAuth(user, null);
     } catch { setError("An account with this email already exists. Try signing in."); } finally { setLoading(false); }
   }, [fullName, email, password, onNavigate]);
 
