@@ -426,7 +426,7 @@ Return ONLY valid JSON, no markdown code blocks.`;
   // ──────────────── CONTENT GENERATION (Prompt Engine + Scoring Engine) ────────────────
   app.post("/api/content/generate", async (req, res) => {
     try {
-      const { companyId, userId, category, contentType, contentIdea, creativeBrief } = req.body;
+      const { companyId, userId, category, contentType, contentIdea, creativeBrief, regenerationFeedback, previousOutput } = req.body;
 
       // Get brand voice profile + voice rules + channel profiles
       const profile = await storage.getBrandVoiceProfile(companyId);
@@ -505,10 +505,17 @@ ${profile.mandatories ? `7. BRAND DNA CONTEXT: ${profile.mandatories}` : ""}
         if (brief.objectives) userPrompt += `\nObjectives: ${brief.objectives}`;
         if (brief.targetAudience) userPrompt += `\nTarget Audience: ${brief.targetAudience}`;
         if (brief.keyMessages) userPrompt += `\nKey Messages: ${brief.keyMessages}`;
-        if (brief.toneAndFeel) userPrompt += `\nTone and Feel: ${brief.toneAndFeel}`;
+        if (brief.toneNotes || brief.toneAndFeel) userPrompt += `\nTone Notes: ${brief.toneNotes || brief.toneAndFeel}`;
         if (brief.deliverables) userPrompt += `\nDeliverables: ${brief.deliverables}`;
         if (brief.mandatoryInclusions) userPrompt += `\nMandatory Inclusions: ${brief.mandatoryInclusions}`;
         if (brief.references) userPrompt += `\nReferences: ${brief.references}`;
+      }
+
+      // Regeneration with feedback: include previous output and user's change request
+      if (regenerationFeedback && previousOutput) {
+        userPrompt += `\n\n[REGENERATION REQUEST]\nPrevious output:\n"""${previousOutput}"""\n\nUser feedback on what to change: ${regenerationFeedback}\n\nPlease generate an improved version addressing this feedback while maintaining brand voice.`;
+        // Log feedback for continuous improvement
+        console.log(`[Regeneration Feedback] Company ${companyId}, Type: ${contentType}, Feedback: ${regenerationFeedback}`);
       }
 
       const message = await anthropic.messages.create({

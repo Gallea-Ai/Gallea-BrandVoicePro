@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Feather,
-  Download,
+  Plus,
   ChevronDown,
   Loader2,
   Copy,
@@ -32,6 +37,8 @@ import {
   Mail,
   FileText,
   Camera,
+  Info,
+  Upload,
 } from "lucide-react";
 import {
   TRADITIONAL_CONTENT_TYPES,
@@ -56,8 +63,7 @@ const PLACEHOLDER_MAP: Record<string, string> = {
   "Print Ad": "Describe the product/service and the ad's objective...",
   "Direct Mail": "Who is the audience and what action should they take?",
   "Radio Script": "Describe the scenario, tone, and call to action...",
-  "Sales Sheet / One-Pager":
-    "List the key features, benefits, and differentiators...",
+  "Sales Sheet / One-Pager": "List the key features, benefits, and differentiators...",
   "Blog Post": "Main topic to cover...",
   "Landing Page": "What is the landing page for? Describe the offer...",
   "Website Page Copy": "Which page and what content should it include?",
@@ -88,17 +94,26 @@ const QUICK_ACTIONS = [
   { label: "Instagram Caption", tab: "Social" as TabKey, contentType: "Instagram Caption", icon: Camera },
 ];
 
+const SCORE_TOOLTIPS: Record<string, string> = {
+  toneMatch: "How closely the output matches your brand's established tone",
+  vocabularyFit: "How well the word choice aligns with your brand vocabulary",
+  brandConsistency: "Overall coherence with your brand voice profile",
+  emotionalResonance: "How effectively the content evokes your target emotions",
+};
+
+const LOADING_MESSAGES = [
+  "Analyzing your brand voice...",
+  "Crafting your {type}...",
+  "Scoring brand alignment...",
+];
+
 interface CreativeBrief {
   projectName: string;
   background: string;
   objectives: string;
   targetAudience: string;
   keyMessages: string;
-  toneAndFeel: string;
-  deliverablesFormat1: string;
-  deliverablesFormat2: string;
-  mandatoryInclusions: string;
-  referencesInspiration: string;
+  toneNotes: string;
 }
 
 interface GeneratedResult {
@@ -117,44 +132,70 @@ interface CreatePageProps {
   onContentGenerated?: () => void;
 }
 
+// ─── Loading Animation ──────────────────────────────────────────────────────────
+
+function GeneratingAnimation({ contentType }: { contentType: string }) {
+  const [msgIdx, setMsgIdx] = useState(0);
+  useEffect(() => {
+    const timer = setInterval(() => setMsgIdx((p) => (p + 1) % LOADING_MESSAGES.length), 2500);
+    return () => clearInterval(timer);
+  }, []);
+  const msg = LOADING_MESSAGES[msgIdx].replace("{type}", contentType);
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center text-[#585858]">
+      <Loader2 className="w-8 h-8 animate-spin mb-4 text-black" />
+      <p key={msgIdx} className="text-[14px] font-light animate-[fadeIn_0.4s_ease-in]">{msg}</p>
+    </div>
+  );
+}
+
+// ─── Score Badge with Tooltip ───────────────────────────────────────────────────
+
+function ScoreBadge({ label, value, tooltipKey }: { label: string; value: number; tooltipKey: string }) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#F0F0F0] text-[12px] text-black cursor-help">
+          {label}: <span className="font-medium">{value}</span>
+          <Info className="w-3 h-3 text-[#585858]" />
+        </div>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="max-w-[280px] text-[12px] font-light">
+        {SCORE_TOOLTIPS[tooltipKey]}
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
+// ─── Main Create Page ───────────────────────────────────────────────────────────
+
 export default function CreatePage({ user, brandProfile, onContentGenerated }: CreatePageProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("Traditional");
-  const [contentType, setContentType] = useState<string>(
-    TRADITIONAL_CONTENT_TYPES[0]
-  );
+  const [contentType, setContentType] = useState<string>(TRADITIONAL_CONTENT_TYPES[0]);
   const [contentIdea, setContentIdea] = useState("");
+  const [importedContent, setImportedContent] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
+  const [importFileName, setImportFileName] = useState<string | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
   const [briefOpen, setBriefOpen] = useState(false);
   const [brief, setBrief] = useState<CreativeBrief>({
-    projectName: "",
-    background: "",
-    objectives: "",
-    targetAudience: "",
-    keyMessages: "",
-    toneAndFeel: "",
-    deliverablesFormat1: "",
-    deliverablesFormat2: "",
-    mandatoryInclusions: "",
-    referencesInspiration: "",
+    projectName: "", background: "", objectives: "",
+    targetAudience: "", keyMessages: "", toneNotes: "",
   });
   const [result, setResult] = useState<GeneratedResult | null>(null);
-
-  // Edit + re-score state
   const [isEditing, setIsEditing] = useState(false);
   const [editText, setEditText] = useState("");
-
-  // Copy state
   const [copied, setCopied] = useState(false);
+  // Regenerate with feedback
+  const [regenOpen, setRegenOpen] = useState(false);
+  const [regenFeedback, setRegenFeedback] = useState("");
 
   const tabs: TabKey[] = ["Traditional", "Digital", "Social"];
-  const contentOptions = useMemo(
-    () => CONTENT_TYPES_MAP[activeTab],
-    [activeTab]
-  );
+  const contentOptions = useMemo(() => CONTENT_TYPES_MAP[activeTab], [activeTab]);
 
   const handleTabChange = (tab: TabKey) => {
     setActiveTab(tab);
-    const newTypes = CONTENT_TYPES_MAP[tab];
-    setContentType(newTypes[0]);
+    setContentType(CONTENT_TYPES_MAP[tab][0]);
   };
 
   const handleQuickAction = useCallback((action: typeof QUICK_ACTIONS[number]) => {
@@ -162,22 +203,46 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
     setContentType(action.contentType);
   }, []);
 
+  const handleImportFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFileName(file.name);
+    // Read text-based files directly
+    if (file.name.endsWith(".txt") || file.type === "text/plain") {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const text = ev.target?.result as string;
+        setImportedContent((prev) => prev ? `${prev}\n\n${text}` : text);
+      };
+      reader.readAsText(file);
+    }
+    // For PDF/DOCX, store the filename as a reference (full extraction would require server-side)
+    // The filename is shown to the user; they can also paste the content manually
+  }, []);
+
   const generateMutation = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (opts?: { feedback?: string }) => {
       const hasBrief = Object.values(brief).some((v) => v.trim() !== "");
-      const res = await apiRequest("POST", "/api/content/generate", {
+      const payload: Record<string, any> = {
         companyId: user.companyId,
         userId: user.id,
         category: activeTab,
         contentType,
-        contentIdea,
+        contentIdea: importedContent ? `${contentIdea}\n\n[EXISTING CONTENT TO REWRITE]:\n${importedContent}` : contentIdea,
         creativeBrief: hasBrief ? JSON.stringify(brief) : null,
-      });
+      };
+      if (opts?.feedback && result) {
+        payload.regenerationFeedback = opts.feedback;
+        payload.previousOutput = result.generatedText;
+      }
+      const res = await apiRequest("POST", "/api/content/generate", payload);
       return (await res.json()) as GeneratedResult;
     },
     onSuccess: (data) => {
       setResult(data);
       setIsEditing(false);
+      setRegenOpen(false);
+      setRegenFeedback("");
       onContentGenerated?.();
     },
   });
@@ -185,19 +250,14 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
   const rescoreMutation = useMutation({
     mutationFn: async (editedText: string) => {
       const res = await apiRequest("POST", `/api/content/${result!.id}/rescore`, {
-        editedText,
-        companyId: user.companyId,
+        editedText, companyId: user.companyId,
       });
       return (await res.json()) as GeneratedResult;
     },
-    onSuccess: (data) => {
-      setResult(data);
-      setIsEditing(false);
-    },
+    onSuccess: (data) => { setResult(data); setIsEditing(false); },
   });
 
-  const placeholder =
-    PLACEHOLDER_MAP[contentType] || "Describe your content idea...";
+  const placeholder = PLACEHOLDER_MAP[contentType] || "Describe your content idea...";
 
   const updateBrief = (field: keyof CreativeBrief, value: string) => {
     setBrief((prev) => ({ ...prev, [field]: value }));
@@ -216,15 +276,18 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
     setIsEditing(true);
   }, [result]);
 
-  const handleCancelEdit = useCallback(() => {
-    setIsEditing(false);
-    setEditText("");
-  }, []);
-
   const handleRescore = useCallback(() => {
     if (!editText.trim()) return;
     rescoreMutation.mutate(editText);
   }, [editText, rescoreMutation]);
+
+  const handleRegenerate = useCallback(() => {
+    if (regenFeedback.trim()) {
+      generateMutation.mutate({ feedback: regenFeedback });
+    } else {
+      generateMutation.mutate();
+    }
+  }, [regenFeedback, generateMutation]);
 
   const wordCount = useMemo(() => {
     if (!result) return 0;
@@ -239,44 +302,32 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
     { label: "Emotional Resonance", value: result.emotionalResonance, key: "emotionalResonance" },
   ] : [];
 
+  const BRIEF_FIELDS: { key: keyof CreativeBrief; label: string; type: "input" | "textarea" }[] = [
+    { key: "projectName", label: "Project Name", type: "input" },
+    { key: "background", label: "Background", type: "textarea" },
+    { key: "objectives", label: "Objectives", type: "textarea" },
+    { key: "targetAudience", label: "Target Audience", type: "input" },
+    { key: "keyMessages", label: "Key Messages", type: "textarea" },
+    { key: "toneNotes", label: "Tone Notes", type: "input" },
+  ];
+
   return (
     <div className="w-full" data-testid="create-page">
-      {/* Welcome header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-semibold tracking-tight">What would you like to create?</h1>
-        <p className="text-sm text-muted-foreground mt-1">Pick a format below, describe your idea, and we'll write it in your brand's voice.</p>
+      {/* Wordmark */}
+      <div className="text-center mb-4">
+        <h1 className="text-[16px] font-normal text-black">GalleaBrandVoicePro</h1>
       </div>
 
-      {/* Quick Action Shortcuts */}
-      <div className="flex gap-2 mb-4 flex-wrap" data-testid="quick-actions">
-        {QUICK_ACTIONS.map(({ label, tab, contentType: ct, icon: Icon }) => (
-          <button
-            key={label}
-            onClick={() => handleQuickAction({ label, tab, contentType: ct, icon: Icon })}
-            data-testid={`quick-${label.toLowerCase().replace(/\s+/g, "-")}`}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-              activeTab === tab && contentType === ct
-                ? "bg-foreground text-background border-foreground"
-                : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-foreground/30"
-            }`}
-          >
-            <Icon className="w-3 h-3" />
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Tab buttons */}
-      <div className="flex gap-2 mb-6" data-testid="category-tabs">
+      {/* Tab pills */}
+      <div className="flex justify-center gap-2 mb-6" data-testid="category-tabs">
         {tabs.map((tab) => (
           <button
             key={tab}
-            data-testid={`tab-${tab.toLowerCase()}`}
             onClick={() => handleTabChange(tab)}
-            className={`px-5 py-2 rounded-full text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-full text-[14px] font-medium transition-colors ${
               activeTab === tab
-                ? "bg-foreground text-background"
-                : "bg-card text-foreground border border-border hover:bg-secondary"
+                ? "bg-black text-white"
+                : "bg-white text-black border border-black"
             }`}
           >
             {tab}
@@ -284,116 +335,111 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
         ))}
       </div>
 
+      {/* Two-column layout */}
       <div className="flex gap-6">
-        {/* Left panel — 40% */}
-        <div className="w-[40%] space-y-5" data-testid="input-panel">
-          {/* Content Type */}
-          <div className="space-y-2">
-            <Label htmlFor="content-type" className="text-sm font-medium">
-              Content Type
-            </Label>
+        {/* ─── Left Input Panel (~45%) ─── */}
+        <div className="w-[45%] space-y-4" data-testid="input-panel">
+          {/* 1. Content Type dropdown */}
+          <div className="space-y-1.5">
+            <Label className="text-[14px] font-medium text-black">Content Type</Label>
             <Select value={contentType} onValueChange={setContentType}>
-              <SelectTrigger
-                id="content-type"
-                data-testid="select-content-type"
-                className="bg-card"
-              >
+              <SelectTrigger className="bg-white border-[#E5E5E5]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {contentOptions.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
+                  <SelectItem key={type} value={type}>{type}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* Import link */}
-          <button
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="import-content-link"
-          >
-            <Download className="w-3.5 h-3.5" />
-            Import Existing Content
-          </button>
-
-          {/* Content Idea */}
-          <div className="space-y-2">
-            <Label htmlFor="content-idea" className="text-sm font-medium">
-              Tell us what you'd like to say
-            </Label>
-            <Textarea
-              id="content-idea"
-              data-testid="input-content-idea"
-              placeholder={placeholder}
-              value={contentIdea}
-              onChange={(e) => setContentIdea(e.target.value)}
-              className="min-h-[140px] bg-card resize-none"
-            />
+          {/* 2. Import Existing Content (functional — paste or upload) */}
+          <div>
+            <button
+              onClick={() => setImportOpen(!importOpen)}
+              className="flex items-center gap-1.5 text-[14px] font-normal text-black underline hover:no-underline transition-colors"
+              data-testid="import-content-link"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Import Existing Content
+            </button>
+            {importOpen && (
+              <div className="mt-2 space-y-2">
+                <Textarea
+                  value={importedContent}
+                  onChange={(e) => setImportedContent(e.target.value)}
+                  placeholder="Paste existing content here to be rewritten in your brand voice..."
+                  className="min-h-[80px] bg-[#F0F0F0] resize-none text-[14px]"
+                  data-testid="textarea-imported-content"
+                />
+                <div
+                  className="border-2 border-dashed border-[#B7B7B7] rounded-lg p-4 flex flex-col items-center justify-center cursor-pointer hover:border-black/30 transition-colors"
+                  onClick={() => importFileRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const file = e.dataTransfer.files[0];
+                    if (file) {
+                      setImportFileName(file.name);
+                      if (file.name.endsWith(".txt") || file.type === "text/plain") {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                          const text = ev.target?.result as string;
+                          setImportedContent((prev) => prev ? `${prev}\n\n${text}` : text);
+                        };
+                        reader.readAsText(file);
+                      }
+                    }
+                  }}
+                  data-testid="import-upload-zone"
+                >
+                  <Upload className="w-5 h-5 text-[#585858] mb-1.5" />
+                  {importFileName ? (
+                    <p className="text-[13px] font-medium text-black">{importFileName}</p>
+                  ) : (
+                    <>
+                      <p className="text-[13px] font-light text-[#585858]">Drag and drop a file, or click to upload</p>
+                      <p className="text-[11px] text-[#9B9B9B] mt-0.5">PDF, DOCX, or TXT</p>
+                    </>
+                  )}
+                </div>
+                <input
+                  ref={importFileRef}
+                  type="file"
+                  accept=".pdf,.docx,.txt"
+                  className="hidden"
+                  onChange={handleImportFile}
+                />
+              </div>
+            )}
           </div>
 
-          {/* Creative Brief collapsible */}
+          {/* 3. Creative Brief (ABOVE content idea) */}
           <Collapsible open={briefOpen} onOpenChange={setBriefOpen}>
             <CollapsibleTrigger asChild>
-              <button
-                className="flex items-center gap-1.5 text-sm font-medium hover:text-muted-foreground transition-colors w-full"
-                data-testid="toggle-creative-brief"
-              >
-                <ChevronDown
-                  className={`w-4 h-4 transition-transform ${briefOpen ? "rotate-180" : ""}`}
-                />
-                Add more detail (optional)
+              <button className="flex items-center gap-1.5 text-[14px] font-medium text-black w-full" data-testid="toggle-creative-brief">
+                <ChevronDown className={`w-4 h-4 transition-transform ${briefOpen ? "rotate-180" : ""}`} />
+                Creative Brief (Optional)
               </button>
             </CollapsibleTrigger>
             <CollapsibleContent>
-              <div className="mt-3 space-y-3 bg-card rounded-lg p-4 border border-border">
-                {[
-                  { key: "projectName" as const, label: "Project Name", type: "input" },
-                  { key: "background" as const, label: "Background", type: "textarea" },
-                  { key: "objectives" as const, label: "Objectives", type: "textarea" },
-                  { key: "targetAudience" as const, label: "Target Audience", type: "input" },
-                  { key: "keyMessages" as const, label: "Key Messages", type: "textarea" },
-                  { key: "toneAndFeel" as const, label: "Tone and Feel", type: "input" },
-                  {
-                    key: "deliverablesFormat1" as const,
-                    label: "Deliverables and Format",
-                    type: "input",
-                  },
-                  {
-                    key: "deliverablesFormat2" as const,
-                    label: "Deliverables and Format (2)",
-                    type: "input",
-                  },
-                  {
-                    key: "mandatoryInclusions" as const,
-                    label: "Mandatory Inclusions",
-                    type: "textarea",
-                  },
-                  {
-                    key: "referencesInspiration" as const,
-                    label: "References and Inspiration",
-                    type: "textarea",
-                  },
-                ].map(({ key, label, type }) => (
+              <div className="mt-2 space-y-3 bg-[#F0F0F0] rounded-lg p-4">
+                {BRIEF_FIELDS.map(({ key, label, type }) => (
                   <div key={key} className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">
-                      {label}
-                    </Label>
+                    <Label className="text-[12px] text-[#585858]">{label}</Label>
                     {type === "input" ? (
                       <Input
-                        data-testid={`brief-${key}`}
-                        value={brief[key]}
-                        onChange={(e) => updateBrief(key, e.target.value)}
-                        className="h-8 text-sm bg-background"
+                        value={brief[key]} onChange={(e) => updateBrief(key, e.target.value)}
+                        className="h-8 text-[14px] bg-white border-[#E5E5E5]"
+                        placeholder={label === "Background" ? "Briefly describe your organization and why this content matters." : ""}
                       />
                     ) : (
                       <Textarea
-                        data-testid={`brief-${key}`}
-                        value={brief[key]}
-                        onChange={(e) => updateBrief(key, e.target.value)}
-                        className="min-h-[60px] text-sm bg-background resize-none"
+                        value={brief[key]} onChange={(e) => updateBrief(key, e.target.value)}
+                        className="min-h-[60px] text-[14px] bg-white border-[#E5E5E5] resize-none"
+                        placeholder={label === "Background" ? "Briefly describe your organization and why this content matters." : ""}
                       />
                     )}
                   </div>
@@ -402,172 +448,140 @@ export default function CreatePage({ user, brandProfile, onContentGenerated }: C
             </CollapsibleContent>
           </Collapsible>
 
-          {/* Generate button */}
+          {/* 4. Your Content Idea */}
+          <div className="space-y-1.5">
+            <Label className="text-[14px] font-medium text-black">Your Content Idea</Label>
+            <Textarea
+              data-testid="input-content-idea"
+              placeholder={placeholder}
+              value={contentIdea}
+              onChange={(e) => setContentIdea(e.target.value)}
+              className="min-h-[120px] bg-[#F0F0F0] resize-none text-[14px]"
+            />
+          </div>
+
+          {/* 5. Generate button — dynamic text */}
           <Button
             data-testid="button-generate"
-            className="w-full"
+            className="w-full bg-black text-white hover:bg-black/90 rounded-[10px] text-[14px] font-light"
             size="lg"
             disabled={!contentIdea.trim() || generateMutation.isPending}
             onClick={() => generateMutation.mutate()}
           >
             {generateMutation.isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Generating...
-              </>
+              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>
             ) : (
-              "Write this for me"
+              `Generate ${contentType}`
             )}
           </Button>
 
           {generateMutation.isError && (
-            <p
-              className="text-sm text-destructive"
-              data-testid="text-generate-error"
-            >
+            <p className="text-[14px] text-[#FF0000]">
               {generateMutation.error?.message || "Generation failed. Please try again."}
             </p>
           )}
         </div>
 
-        {/* Right panel — 60% */}
-        <div
-          className="w-[60%] bg-card rounded-lg border border-border p-6 min-h-[500px] flex flex-col"
-          data-testid="output-panel"
-        >
+        {/* ─── Right Output Panel (~55%) ─── */}
+        <div className="w-[55%] bg-white rounded-lg border border-[#E5E5E5] p-6 min-h-[500px] flex flex-col" data-testid="output-panel">
           {generateMutation.isPending ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-              <Loader2
-                className="w-8 h-8 animate-spin mb-3"
-                data-testid="loading-spinner"
-              />
-              <p className="text-sm">Generating...</p>
-            </div>
+            <GeneratingAnimation contentType={contentType} />
           ) : result ? (
-            <div className="flex flex-col gap-5 flex-1">
+            <div className="flex flex-col gap-4 flex-1">
               {/* Action bar */}
-              <div className="flex items-center gap-2 justify-end" data-testid="content-actions">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopy}
-                  data-testid="button-copy"
-                >
-                  {copied ? (
-                    <><Check className="w-3.5 h-3.5 mr-1.5 text-green-600" />Copied!</>
-                  ) : (
-                    <><Copy className="w-3.5 h-3.5 mr-1.5" />Copy</>
-                  )}
+              <div className="flex items-center gap-2 justify-end flex-wrap" data-testid="content-actions">
+                <Button variant="outline" size="sm" onClick={handleCopy} className="border-[#E5E5E5]">
+                  {copied ? <><Check className="w-3.5 h-3.5 mr-1.5 text-[#1F9A15]" />Copied!</> : <><Copy className="w-3.5 h-3.5 mr-1.5" />Copy</>}
                 </Button>
                 {!isEditing ? (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleStartEdit}
-                    data-testid="button-edit"
-                  >
-                    <Pencil className="w-3.5 h-3.5 mr-1.5" />
-                    Edit
+                  <Button variant="outline" size="sm" onClick={handleStartEdit} className="border-[#E5E5E5]">
+                    <Pencil className="w-3.5 h-3.5 mr-1.5" />Edit
                   </Button>
                 ) : (
                   <>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCancelEdit}
-                      data-testid="button-cancel-edit"
-                    >
-                      <X className="w-3.5 h-3.5 mr-1.5" />
-                      Cancel
+                    <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); setEditText(""); }} className="border-[#E5E5E5]">
+                      <X className="w-3.5 h-3.5 mr-1.5" />Cancel
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleRescore}
-                      disabled={rescoreMutation.isPending}
-                      data-testid="button-rescore"
-                    >
-                      {rescoreMutation.isPending ? (
-                        <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Scoring...</>
-                      ) : (
-                        <>Re-score</>
-                      )}
+                    <Button size="sm" onClick={handleRescore} disabled={rescoreMutation.isPending} className="bg-black text-white">
+                      {rescoreMutation.isPending ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Scoring...</> : "Re-score"}
                     </Button>
                   </>
                 )}
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateMutation.mutate()}
+                  variant="outline" size="sm"
+                  onClick={() => setRegenOpen(!regenOpen)}
                   disabled={generateMutation.isPending}
-                  data-testid="button-regenerate"
+                  className="border-[#E5E5E5]"
                 >
-                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
-                  Regenerate
+                  <RefreshCw className="w-3.5 h-3.5 mr-1.5" />Regenerate
                 </Button>
               </div>
+
+              {/* Regenerate feedback input */}
+              {regenOpen && (
+                <div className="flex gap-2 items-end">
+                  <div className="flex-1">
+                    <Label className="text-[12px] text-[#585858] mb-1 block">What should change?</Label>
+                    <Input
+                      value={regenFeedback}
+                      onChange={(e) => setRegenFeedback(e.target.value)}
+                      placeholder="e.g. Make it more conversational, shorten the intro..."
+                      className="text-[14px] bg-[#F0F0F0] border-[#E5E5E5]"
+                      data-testid="input-regen-feedback"
+                    />
+                  </div>
+                  <Button size="sm" onClick={handleRegenerate} disabled={generateMutation.isPending} className="bg-black text-white">
+                    {generateMutation.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Go"}
+                  </Button>
+                </div>
+              )}
 
               {/* Content display / edit */}
               {isEditing ? (
                 <Textarea
-                  value={editText}
-                  onChange={(e) => setEditText(e.target.value)}
-                  className="flex-1 min-h-[300px] text-sm leading-relaxed resize-none bg-background"
-                  data-testid="textarea-edit-content"
+                  value={editText} onChange={(e) => setEditText(e.target.value)}
+                  className="flex-1 min-h-[300px] text-[14px] leading-relaxed resize-none bg-[#F0F0F0]"
                 />
               ) : (
-                <div
-                  className="prose prose-sm max-w-none text-foreground whitespace-pre-wrap leading-relaxed"
-                  data-testid="text-generated-content"
-                >
+                <div className="prose prose-sm max-w-none text-black whitespace-pre-wrap leading-relaxed text-[14px] flex-1">
                   {result.generatedText}
                 </div>
               )}
 
               {/* Word count */}
-              <p className="text-xs text-muted-foreground" data-testid="text-word-count">
-                {wordCount} words
-              </p>
+              <p className="text-[12px] text-[#7E7E7E]">{wordCount} words</p>
 
               {/* Re-score error */}
               {rescoreMutation.isError && (
-                <p className="text-sm text-destructive" data-testid="text-rescore-error">
-                  {rescoreMutation.error?.message || "Re-scoring failed. Please try again."}
-                </p>
+                <p className="text-[14px] text-[#FF0000]">{rescoreMutation.error?.message || "Re-scoring failed."}</p>
               )}
 
-              {/* Scores */}
-              <div className="border-t border-border pt-4">
-                <p className="text-xs text-muted-foreground mb-2 font-medium">
-                  Brand Alignment Scores
-                </p>
-                <div
-                  className="flex flex-wrap gap-2"
-                  data-testid="scores-container"
-                >
+              {/* Scores with tooltips */}
+              <div className="border-t border-[#E5E5E5] pt-4">
+                <p className="text-[12px] text-[#585858] mb-2 font-medium">Brand Alignment Scores</p>
+                <div className="flex flex-wrap gap-2" data-testid="scores-container">
                   {displayScores.map(({ label, value, key }) => (
-                    <Badge
-                      key={key}
-                      variant="secondary"
-                      className="text-xs font-normal"
-                      data-testid={`score-${key}`}
-                    >
-                      {label}: {value}
-                    </Badge>
+                    <ScoreBadge key={key} label={label} value={value} tooltipKey={key} />
                   ))}
                 </div>
-                <p className="text-xs text-muted-foreground mt-3">Not quite right? Hit Regenerate for a fresh take, or Edit to fine-tune it yourself.</p>
+                <p className="text-[12px] text-[#7E7E7E] mt-3">
+                  Not quite right? Hit Regenerate to describe what needs to change, or Edit to fine-tune it yourself.
+                </p>
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-              <Feather className="w-10 h-10 mb-3 opacity-40" />
-              <p className="text-sm" data-testid="text-empty-state">
-                Your content will appear here once you hit 'Write this for me'
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <Feather className="w-10 h-10 mb-3 text-[#7E7E7E] opacity-40" />
+              <p className="text-[14px] font-normal text-[#7E7E7E]" data-testid="text-empty-state">
+                Your rewritten content will appear here
               </p>
             </div>
           )}
         </div>
       </div>
+
+      {/* Footer */}
+      <p className="text-center text-[12px] text-[#585858] mt-6">Powered by Gallea Ai</p>
     </div>
   );
 }
